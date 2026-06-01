@@ -1,0 +1,20 @@
+{
+  "name": "stock-calculator",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Sell-target calculator: enter a stock, amount, and goal, see the price you should sell at.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 5173"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.7"
+  }
+}

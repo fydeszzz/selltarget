@@ -1,0 +1,154 @@
+// Tiny hand-rolled i18n. For ~25 strings, pulling in i18next would be
+// massively out of proportion. Switch later if the app grows polyglot.
+//
+// Keys are stable across locales. Add a new language by copying `en` and
+// translating values.
+
+export const LANGUAGES = ['en', 'zh'];
+
+export const translations = {
+  en: {
+    brand: 'signal',
+    tagline: 'target price calculator',
+    market: { TW: 'TW Stock', US: 'US Stock' },
+    symbolLabel: { TW: 'Code or name', US: 'Symbol or name' },
+    placeholder: { TW: '2330  /  TSMC', US: 'TSLA  /  Tesla' },
+    fetch: 'Fetch',
+    fetching: 'Fetching…',
+    currentPrice: 'Current price',
+    shares: 'Shares',
+    percentMode: '% return',
+    dollarMode: '$ profit',
+    targetReturn: 'Target return',
+    targetProfit: 'Target profit',
+    sellWhen: 'Sell when price reaches',
+    totalCost: 'Total cost',
+    totalRevenue: 'Total revenue',
+    profit: 'Profit',
+    returnPct: 'Return',
+    placeholderHint: 'Enter a price, share count, and a goal to see your sell target.',
+    limitUp: 'Limit up',
+    limitDown: 'Limit down',
+    twLimitNote: 'TW exchange ±10%',
+    feeMultiplier: 'Commission multiplier',
+    feeOptional: 'optional',
+    feeMultiplierHint: '0.6 = ×0.6 discount · blank = full 0.1425%',
+    buyFee: 'Commission (buy)',
+    sellFee: 'Commission (sell)',
+    secTax: 'Transaction tax (sell)',
+    netProfit: 'Net profit',
+    netReturn: 'Net return',
+    etfTag: 'ETF',
+    twFeeNote: 'Note: TW trades incur commission; selling also incurs transaction tax.',
+    disclaimer: 'Prices via Yahoo Finance. Educational tool, not investment advice.',
+    todoTag: 'implement me',
+    todoHint: 'The formulas and a self-test are waiting in',
+    liveTag: 'Live',
+    prevCloseTag: 'Prev close',
+    preMarketTag: 'Pre-market',
+    postMarketTag: 'After-hours',
+    languageLabel: 'Language',
+    marketLabel: 'Market',
+    nav: { calc: 'Calculator', fees: 'Discount', settings: 'Settings' },
+    feeDiscTitle: 'Commission discount',
+    tradeAmount: 'Trade amount',
+    feePaid: 'Commission paid',
+    yourDiscount: 'Your discount',
+    effectiveRate: 'Effective rate',
+    baseCommission: 'Standard commission',
+    feeDiscHint: 'Trade amount = price × shares · standard rate 0.1425%',
+    feeDiscMinNote: 'Amount too small: the NT$20 minimum dominates, so the discount is not meaningful.',
+    feeDiscPlaceholder: 'Enter a trade amount and the commission paid.',
+    feeDiscDisclaimer: 'For estimation only. Please confirm your actual discount with your broker representative.',
+    settingsTitle: 'Settings',
+    settingsLang: 'Language',
+    settingsAbout: 'About',
+    settingsAboutText: 'Sell Signal: a stock sell-target & TW fee calculator. Educational use only.',
+    settingsBugReport: 'Bug Report',
+    settingsBugReportText: 'Please contact the author at fydeszzz@gmail.com',
+    settingsVersion: 'App Version',
+  },
+  zh: {
+    brand: '訊號',
+    tagline: '賣點計算機',
+    market: { TW: '台股', US: '美股' },
+    symbolLabel: { TW: '代號或名稱', US: 'Symbol 或名稱' },
+    placeholder: { TW: '2330  /  台積電', US: 'TSLA  /  Tesla' },
+    fetch: '取得',
+    fetching: '查詢中…',
+    currentPrice: '現價 (可手動輸入)',
+    shares: '股數',
+    percentMode: '報酬率',
+    dollarMode: '目標獲利',
+    targetReturn: '目標報酬率',
+    targetProfit: '目標獲利金額',
+    sellWhen: '目標賣出點股價',
+    totalCost: '總成本',
+    totalRevenue: '總收入',
+    profit: '獲利',
+    returnPct: '報酬',
+    placeholderHint: '輸入現價、股數與目標，計算建議賣出價。',
+    limitUp: '漲停',
+    limitDown: '跌停',
+    twLimitNote: '台股 ±10%',
+    feeMultiplier: '手續費倍率',
+    feeOptional: '選填',
+    feeMultiplierHint: '0.6 = 打6折 · 留空 = 原價 0.1425%',
+    buyFee: '手續費（買進）',
+    sellFee: '手續費（賣出）',
+    secTax: '證交稅（賣出）',
+    netProfit: '淨獲利',
+    netReturn: '淨報酬率',
+    etfTag: 'ETF',
+    twFeeNote: '備註：台股買賣需手續費；賣出需付交易稅',
+    disclaimer: '報價來源 Yahoo Finance，僅供計算，非投資建議',
+    todoTag: '尚未實作',
+    todoHint: '公式與自我測試請見',
+    liveTag: '即時',
+    prevCloseTag: '昨收',
+    preMarketTag: '盤前',
+    postMarketTag: '盤後',
+    languageLabel: '語言',
+    marketLabel: '市場',
+    nav: { calc: '計算機', fees: '手續費', settings: '設定' },
+    feeDiscTitle: '手續費折數計算',
+    tradeAmount: '成交金額',
+    feePaid: '實付手續費',
+    yourDiscount: '你的折數',
+    effectiveRate: '實際費率',
+    baseCommission: '原始手續費',
+    feeDiscHint: '*成交金額 = 股價 × 股數 · 原始費率 0.1425%',
+    feeDiscMinNote: '成交金額過小，已達 NT$20 最低收費',
+    feeDiscPlaceholder: '輸入成交金額與實付手續費反推折數',
+    feeDiscDisclaimer: '*本功能僅提供試算，實際折數建議與您的證券交易員確認',
+    settingsTitle: '設定',
+    settingsLang: '語言',
+    settingsAbout: '關於',
+    settingsAboutText: 'Sell Signal：股票賣點與台股手續費計算工具，僅供教學參考，非投資建議',
+    settingsBugReport: '問題回報',
+    settingsBugReportText: '請聯繫作者: fydeszzz@gmail.com',
+    settingsVersion: 'App 版本',
+  },
+};
+
+export function detectLang() {
+  // Priority: saved preference → browser language → default.
+  // Default is 'zh' (this is a TW-stock-focused tool), so even non-Chinese
+  // browsers with no saved preference open in Traditional Chinese.
+  if (typeof localStorage !== 'undefined') {
+    const saved = localStorage.getItem('sellsignal:lang');
+    if (saved && LANGUAGES.includes(saved)) return saved;
+  }
+  if (typeof navigator !== 'undefined' && /^en/i.test(navigator.language || '')) {
+    return 'en';
+  }
+  return 'zh';
+}
+
+export function detectMarket(lang) {
+  if (typeof localStorage !== 'undefined') {
+    const saved = localStorage.getItem('sellsignal:market');
+    if (saved === 'TW' || saved === 'US') return saved;
+  }
+  return lang === 'zh' ? 'TW' : 'US';
+}
