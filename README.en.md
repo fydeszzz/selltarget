@@ -179,6 +179,9 @@ dollar  mode → targetPrice = currentPrice + (targetValue / amount)
 
 ## Changelog
 
+### 2026-06-03
+- Minor docs touch-up.
+
 ### 2026-06-02
 - Added a Light appearance theme: switch between light and dark backgrounds in Settings. Defaults to dark and remembers your preference.
 - Fixed several issues and polished details: improved the freshness of TW intraday quotes, corrected the quote-source label, and made other small UX refinements.
@@ -194,4 +197,4 @@ Ricy Hsu
 ---
 
 ## 📅 Last Updated
-June 2, 2026
+June 3, 2026
