@@ -44,6 +44,39 @@
 }
 
 /* =============================================================
+   Light theme — opt-in via data-theme="light" on <html>.
+   Only the color tokens change; every component reads these
+   variables, so the whole UI re-themes without touching a
+   single component rule. Dark stays the default (no attribute).
+   ============================================================= */
+:root[data-theme="light"] {
+  --bg:           #EFEFF3;
+  --surface:      #FFFFFF;
+  --surface-2:    #F4F4F8;
+  --surface-3:    #E9E9F0;
+
+  --hairline:     rgba(0, 0, 0, 0.08);
+  --hairline-2:   rgba(0, 0, 0, 0.12);
+
+  --text:         #16161C;
+  --text-muted:   #6A6A78;
+  --text-faint:   #A2A2B0;
+
+  /* Purple accent already reads well on white; only soften the glows. */
+  --accent-soft:  rgba(168, 85, 247, 0.12);
+  --accent-glow:  rgba(168, 85, 247, 0.20);
+  --scroll-thumb: rgba(124, 58, 237, 0.45);
+  /* Darker green/red so gains and losses stay legible on a white surface. */
+  --pos:          #15A34A;
+  --neg:          #DC2626;
+
+  --shadow-card:  0 1px 0 rgba(255, 255, 255, 0.7) inset,
+                  0 16px 40px -28px rgba(0, 0, 0, 0.35);
+  --shadow-phone: 0 50px 100px -45px rgba(0, 0, 0, 0.28),
+                  0 30px 60px -35px rgba(168, 85, 247, 0.16);
+}
+
+/* =============================================================
    Reset
    ============================================================= */
 *, *::before, *::after { box-sizing: border-box; }
@@ -783,6 +816,35 @@ Full-width gray rounded box for the sell price (matches the input fields). */
 .page-title { margin: 12; font-size: 20px; font-weight: 700; color: var(--text); }
 .page-desc  { margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
 .settings-lang { align-self: flex-start; }
+
+/* Support / sponsor button (Settings → 贊助). Anchor styled as the app's
+   primary pill. Sized to match the language / appearance toggles above
+   (same padding, font-size, min-height) so the settings controls read as
+   one consistent family. */
+.support-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  min-height: 28px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+  text-decoration: none;
+  box-shadow: 0 6px 18px -10px var(--accent-glow);
+  transition: transform 0.15s ease, box-shadow 0.18s ease, filter 0.15s ease;
+}
+.support-btn:hover  { filter: brightness(1.06); }
+.support-btn:active { transform: scale(0.97); }
+.support-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+}
 
 /* --- Settings page: content-sized & vertically centered (matches 手續費) ---
    No `.fill` class, so the panel hugs its content and the grid's

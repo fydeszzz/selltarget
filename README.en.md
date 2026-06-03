@@ -54,6 +54,41 @@ node src/lib/calculate.js   # prints OK percent / OK dollar
 node src/lib/twFees.js      # prints PASS commission / tax / etf-tax
 ```
 
+## Desktop Shortcut (Windows)
+If you would rather not `cd` into the project and run `npm run dev` every time, you can put a one-click launcher on your desktop.
+
+**Option 1: Batch file (simplest)**
+
+Create `SellSignal Dev.bat` on your desktop with the following content (swap the path for your own project location):
+```bat
+@echo off
+title SellSignal Dev Server
+cd /d "C:\path\to\SellSignal"
+
+if not exist "node_modules" (
+    echo node_modules not found. Running npm install ...
+    call npm install
+)
+
+echo Starting dev server ^(npm run dev^) ...
+call npm run dev
+
+echo.
+echo Dev server stopped. Press any key to close.
+pause >nul
+```
+Double-clicking it changes into the project directory, installs dependencies if needed, and starts the Vite dev server. The `/d` flag on `cd /d` switches both drive and directory, so it works even if the project lives on another drive.
+
+**Option 2: Shortcut with an icon (`.lnk`)**
+
+A `.lnk` shortcut can carry a custom icon, but Windows icons only accept the `.ico` format (a `.png` will not work directly). This project ships `make-shortcut.ps1`, which converts `public/stock.png` into a multi-size `.ico` (16 / 32 / 48 / 256 px) and creates a desktop shortcut pointing at the `.bat` above:
+```powershell
+powershell -ExecutionPolicy Bypass -File make-shortcut.ps1
+```
+Adjust the `$projectDir` path at the top of the script for your environment before running. The generated `SellSignal.ico` is local-only and is listed in `.gitignore`, so it stays out of version control.
+
+> If the icon does not update right away, that is the Windows icon cache. Refresh the desktop (F5) or restart File Explorer.
+
 ## Project Structure
 ```
 stock-calculator/
@@ -133,6 +168,7 @@ dollar  mode → targetPrice = currentPrice + (targetValue / amount)
 - This is an educational calculator, **not** investment advice.
 
 ## Known Issues / Optimization Notes
+- **TW intraday quote**: TWSE MIS no longer returns the last-traded price (`z` / `pz`) on its public feed — both are `"-"` during trading, leaving only the live best-5 order book. To avoid showing yesterday's close intraday, `fetchTwPrice` now selects the price as `z → pz → best bid → best ask → prev close`; when a 五檔 value is used the freshness tag is honestly labeled **Bid / Ask** instead of **Live**. For a sell decision the best bid is the most relevant number anyway: it's roughly what you can sell into right now.
 - Official TWSE `limits` are fetched in `fetchPrice.js` but the UI renders the local `priceLimits()` ±10% approximation instead; wiring `meta.limits` through would make TW limits exchange-accurate.
 - `priceLimits.pickTick()` is a stub (`return null`); the tick-size table is documented inline for a future upgrade.
 - `BottomNav` reuses `aria-label={t.marketLabel}`; it should have its own navigation label.
@@ -142,6 +178,10 @@ dollar  mode → targetPrice = currentPrice + (targetValue / amount)
 - **Exchange-accurate TW price limits** — replace the ±10% approximation with the TWSE tick-size table (`priceLimits.pickTick`) and the official `limits` already returned by `fetchPrice`.
 
 ## Changelog
+
+### 2026-06-02
+- Added a Light appearance theme: switch between light and dark backgrounds in Settings. Defaults to dark and remembers your preference.
+- Fixed several issues and polished details: improved the freshness of TW intraday quotes, corrected the quote-source label, and made other small UX refinements.
 
 ### 2026-05-31
 - Initial release: React + Vite scaffold, Yahoo price fetch, two goal modes, editorial dark UI.
@@ -154,4 +194,4 @@ Ricy Hsu
 ---
 
 ## 📅 Last Updated
-May 31, 2026
+June 2, 2026

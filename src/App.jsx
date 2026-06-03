@@ -10,6 +10,17 @@ import SettingsPage from './components/SettingsPage.jsx';
 
 const LS_LANG   = 'sellsignal:lang';
 const LS_MARKET = 'sellsignal:market';
+const LS_THEME  = 'sellsignal:theme';
+
+// Read the saved theme once on boot. Default is 'dark' — the app was
+// designed dark-first, so an unset preference keeps the original look.
+function detectTheme() {
+  try {
+    const saved = localStorage.getItem(LS_THEME);
+    if (saved === 'light' || saved === 'dark') return saved;
+  } catch {}
+  return 'dark';
+}
 
 const fmt = (n, digits = 2) =>
   Number.isFinite(n)
@@ -31,11 +42,18 @@ export default function App() {
   // --- preferences (persisted) ----------------------------------------------
   const [lang, setLang] = useState(detectLang);
   const [market, setMarket] = useState(() => detectMarket(detectLang()));
+  const [theme, setTheme] = useState(detectTheme);
   const [view, setView] = useState('calc');   // 'calc' | 'fees' | 'settings'
   const t = translations[lang];
 
   useEffect(() => { try { localStorage.setItem(LS_LANG,   lang);   } catch {} }, [lang]);
   useEffect(() => { try { localStorage.setItem(LS_MARKET, market); } catch {} }, [market]);
+  // Persist the theme AND reflect it on <html> so the body background (which
+  // lives outside .page) re-themes too. Tokens cascade from :root downward.
+  useEffect(() => {
+    try { localStorage.setItem(LS_THEME, theme); } catch {}
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   // --- scroll-reveal scrollbar ---------------------------------------------
   // Show the custom scrollbar only while the user is actively scrolling,
@@ -104,6 +122,7 @@ export default function App() {
         limits:   r.limits || null,        // TWSE returns official 漲跌停
         tradedAt: r.tradedAt || null,
         isLive:   !!r.isLive,
+        priceSource:  r.priceSource || null,     // TW: 'matched' | 'bid' | 'ask' | 'prevClose'
         session:      r.session || 'regular',   // US: 'pre' | 'regular' | 'post'
         sessionPrice: r.sessionPrice ?? null,   // US extended-hours price (display only)
       });
@@ -208,7 +227,13 @@ export default function App() {
               {meta.exchange && <span className="muted"> · {meta.exchange}</span>}
               {meta.tradedAt && (
                 <span className={`freshness ${meta.isLive ? 'is-live' : 'is-stale'}`}>
-                  {meta.isLive ? t.liveTag : t.prevCloseTag}
+                  {/* TWSE now hides last-match price intraday; when we fall back
+                      to the live 五檔, label it honestly as 買價/賣價 (bid/ask)
+                      rather than pretending it's a matched 即時 price. */}
+                  {meta.priceSource === 'bid'  ? t.bidTag
+                    : meta.priceSource === 'ask' ? t.askTag
+                    : meta.isLive               ? t.liveTag
+                    :                             t.prevCloseTag}
                   {' '}
                   {fmtTradedAt(meta.tradedAt, meta.isLive)}
                 </span>
@@ -407,7 +432,13 @@ export default function App() {
           )}
 
           <footer className="output-foot">
-            <span className="muted small">{t.disclaimer}</span>
+            {/* Source name is market-aware: TW prices come from 證交所 (TWSE MIS),
+                US prices from Yahoo Finance. */}
+            <span className="muted small">
+              {t.quoteSourceLabel} {market === 'TW' ? t.sourceTW : t.sourceUS}
+              {lang === 'zh' ? '，' : '. '}
+              {t.disclaimer}
+            </span>
           </footer>
         </section>
       </main>
@@ -423,7 +454,7 @@ export default function App() {
           setFeePaid={setFeePaidAmt}
         />
       )}
-      {view === 'settings' && <SettingsPage lang={lang} setLang={setLang} t={t} />}
+      {view === 'settings' && <SettingsPage lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} t={t} />}
 
       <BottomNav view={view} setView={setView} t={t} />
     </div>

@@ -135,15 +135,26 @@ async function fetchTwPrice(rawInput) {
     throw new Error(`TWSE 回應 ${json.rtcode}: ${json.rtmessage || 'unknown'}`);
   }
   const rows = json?.msgArray ?? [];
-  // Prefer a row with z, then pz, then y. (MIS sometimes returns
-  // multiple rows — one tse, one otc — and we pick the most-populated.)
   const positive = (v) => {
     const n = parseFloat(v);
     return v != null && v !== '-' && Number.isFinite(n) && n > 0;
   };
+  // MIS 五檔 (best-5 order book) come as underscore-joined strings, best
+  // first: `b` = bids high→low, `a` = asks low→high. The first segment is
+  // the best bid / best ask.
+  const firstQuote = (s) => {
+    const first = String(s ?? '').split('_')[0];
+    const n = parseFloat(first);
+    return Number.isFinite(n) && n > 0 ? n : NaN;
+  };
+  // Pick the most-populated row. MIS often returns two rows (one tse, one
+  // otc) and only one has data. Since TWSE now withholds z/pz on the
+  // public feed during trading, we also accept a row that only has a live
+  // best-bid (五檔) so a trading stock isn't mistaken for "no quote".
   const row =
     rows.find((r) => positive(r.z))  ??
     rows.find((r) => positive(r.pz)) ??
+    rows.find((r) => Number.isFinite(firstQuote(r.b))) ??
     rows.find((r) => positive(r.y))  ??
     rows[0];
   if (!row) throw new Error(`${code} 查無報價 (代號是否正確？)`);
@@ -153,19 +164,33 @@ async function fetchTwPrice(rawInput) {
   if (import.meta.env.DEV) {
     console.log('[MIS]', code, {
       z: row.z, pz: row.pz, y: row.y,
+      b: row.b, a: row.a,
       d: row.d, t: row.t, tlong: row.tlong,
       ex: row.ex,
     });
   }
 
-  // Price priority: z (current matched) → pz (last matched) → y (yesterday).
-  // In active trading z is set; during the gap between matches z is "-"
-  // but pz still holds the last actual trade — which is the "real" price.
-  // Only when both z and pz are missing do we fall to y.
-  const z  = positive(row.z)  ? parseFloat(row.z)  : NaN;
-  const pz = positive(row.pz) ? parseFloat(row.pz) : NaN;
-  const y  = positive(row.y)  ? parseFloat(row.y)  : NaN;
-  const price = Number.isFinite(z) ? z : Number.isFinite(pz) ? pz : y;
+  // Price priority: z (current match) → pz (last match) → best bid → best
+  // ask → y (yesterday).
+  //
+  // TWSE MIS stopped returning z/pz (last-traded price) on the free public
+  // feed during continuous trading — only the 五檔 order book stays live.
+  // So when z/pz are blank we use the BEST BID: the price you can sell into
+  // right now, which is exactly what a sell-decision calculator wants.
+  // Best ask is a secondary fallback (e.g. limit-up with no bids); only
+  // when the whole book is empty do we fall back to yesterday's close.
+  const z   = positive(row.z)  ? parseFloat(row.z)  : NaN;
+  const pz  = positive(row.pz) ? parseFloat(row.pz) : NaN;
+  const y   = positive(row.y)  ? parseFloat(row.y)  : NaN;
+  const bid = firstQuote(row.b);
+  const ask = firstQuote(row.a);
+
+  let price, priceSource;
+  if      (Number.isFinite(z))   { price = z;   priceSource = 'matched'; }
+  else if (Number.isFinite(pz))  { price = pz;  priceSource = 'matched'; }
+  else if (Number.isFinite(bid)) { price = bid; priceSource = 'bid'; }
+  else if (Number.isFinite(ask)) { price = ask; priceSource = 'ask'; }
+  else                           { price = y;   priceSource = 'prevClose'; }
   if (!Number.isFinite(price)) {
     throw new Error(`${code} 暫無價格資料。`);
   }
@@ -179,7 +204,10 @@ async function fetchTwPrice(rawInput) {
   // close fallback — used by the UI to label the freshness.
   const tlong    = row.tlong ? parseInt(row.tlong, 10) : null;
   const tradedAt = Number.isFinite(tlong) ? new Date(tlong) : null;
-  const isLive   = !!(row.z && row.z !== '-');
+  // "Live" means the price reflects today's market, not yesterday's close.
+  // A matched price OR a live best-bid/ask from the 五檔 all count as live;
+  // only the prevClose fallback is stale.
+  const isLive   = priceSource !== 'prevClose';
 
   return {
     // Plain numeric code, no exchange suffix. The 上市/上櫃 board is conveyed
@@ -192,7 +220,8 @@ async function fetchTwPrice(rawInput) {
     exchange,
     industry,
     tradedAt,                         // Date | null
-    isLive,                           // true when z is a fresh intraday tick
+    isLive,                           // true for any intraday source
+    priceSource,                      // 'matched' | 'bid' | 'ask' | 'prevClose'
     limits:   {
       limitUp:   parseFloat(row.u),
       limitDown: parseFloat(row.w),

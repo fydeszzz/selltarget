@@ -54,6 +54,41 @@ node src/lib/calculate.js   # 印出 OK percent / OK dollar
 node src/lib/twFees.js      # 印出 PASS commission / tax / etf-tax
 ```
 
+## 桌面捷徑（Windows）
+不想每次都手動 `cd` 進專案再 `npm run dev`，可以在桌面建立一個一鍵啟動的捷徑。
+
+**方法一：批次檔（最簡單）**
+
+在桌面新增一個 `SellSignal Dev.bat`，內容如下（請把路徑換成你的專案位置）：
+```bat
+@echo off
+title SellSignal Dev Server
+cd /d "C:\path\to\SellSignal"
+
+if not exist "node_modules" (
+    echo node_modules not found. Running npm install ...
+    call npm install
+)
+
+echo Starting dev server ^(npm run dev^) ...
+call npm run dev
+
+echo.
+echo Dev server stopped. Press any key to close.
+pause >nul
+```
+雙擊它就會自動切換目錄、必要時安裝套件，並啟動 Vite 開發伺服器。`cd /d` 的 `/d` 參數可同時切換磁碟機與目錄，專案在不同磁碟也適用。
+
+**方法二：有圖示的捷徑（`.lnk`）**
+
+`.lnk` 捷徑可套用自訂圖示，但 Windows 圖示只接受 `.ico` 格式（不能直接用 `.png`）。本專案提供 `make-shortcut.ps1`，會自動把 `public/stock.png` 轉成多尺寸 `.ico`（含 16 / 32 / 48 / 256 px），並在桌面建立指向上述 `.bat` 的捷徑：
+```powershell
+powershell -ExecutionPolicy Bypass -File make-shortcut.ps1
+```
+執行前請先依你的環境調整腳本最上方的 `$projectDir` 路徑。產生的 `SellSignal.ico` 為本機用途、已列入 `.gitignore`，不會進版控。
+
+> 圖示若沒立刻更新，是 Windows 圖示快取所致，重新整理桌面（F5）或重開檔案總管即可。
+
 ## 專案結構
 ```
 stock-calculator/
@@ -133,6 +168,7 @@ dollar  mode → targetPrice = currentPrice + (targetValue / amount)
 - 本工具僅供教學試算，**並非**投資建議。
 
 ## 已知問題 / 優化筆記
+- **台股盤中報價**：證交所 MIS 公開介面已不再回傳「最後成交價」(`z` / `pz`)，盤中兩欄皆為 `"-"`，僅保留即時的買賣五檔。為避免盤中錯誤顯示昨收，`fetchTwPrice` 的選價優先序改為 `z → pz → 最佳買價 → 最佳賣價 → 昨收`；當取用五檔時，UI 的新鮮度標籤會誠實標示為「買價 / 賣價」而非「即時」。對賣出決策而言，最佳買價即「現在掛市價賣大約能成交的價」，比最後成交價更貼切。
 - `fetchPrice.js` 已抓取台股官方的 `limits`，但 UI 目前改用本地 `priceLimits()` 的 ±10% 近似值；將 `meta.limits` 串接進來即可讓台股漲跌停與交易所一致。
 - `priceLimits.pickTick()` 仍是空樁（`return null`）；tick-size 表已在程式碼內註解，供未來升級。
 - `BottomNav` 沿用了 `aria-label={t.marketLabel}`；應改為它自己的導覽標籤。
@@ -142,6 +178,10 @@ dollar  mode → targetPrice = currentPrice + (targetValue / amount)
 - **與交易所一致的台股漲跌停** — 以 TWSE tick-size 表（`priceLimits.pickTick`）與 `fetchPrice` 已回傳的官方 `limits` 取代目前的 ±10% 近似值。
 
 ## 變更紀錄
+
+### 2026-06-02
+- 新增「外觀」淺色主題：可在設定頁切換淺色／深色背景，預設深色，並會記住你的偏好。
+- 修正多項問題並優化細節：改善台股盤中報價的即時性、修正報價來源的標示，以及其他使用體驗的小幅調整。
 
 ### 2026-05-31
 - 初版發布：React + Vite 專案骨架、Yahoo 股價抓取、兩種目標模式、深色編輯風 UI。
@@ -154,4 +194,4 @@ Ricy Hsu
 ---
 
 ## 📅 Last Updated
-May 31, 2026
+June 2, 2026

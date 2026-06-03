@@ -7,3 +7,7 @@ dist
 # Local tooling (not part of the project)
 .claude/
 .playwright-mcp/
+
+# Generated desktop shortcut icon + launcher (local only)
+SellSignal.ico
+SellSignal Dev.bat
