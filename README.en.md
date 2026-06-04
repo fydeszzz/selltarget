@@ -181,6 +181,7 @@ dollar  mode → targetPrice = currentPrice + (targetValue / amount)
 
 ### 2026-06-03
 - Minor docs touch-up.
+- Show TW or ET Date in the stock status section
 
 ### 2026-06-02
 - Added a Light appearance theme: switch between light and dark backgrounds in Settings. Defaults to dark and remembers your preference.
@@ -193,7 +194,8 @@ dollar  mode → targetPrice = currentPrice + (targetValue / amount)
 
 ## 👤 Author
 Ricy Hsu
-Contact: [Email] (fydeszzz@gmail.com)
+
+Contact: Email (mailto:fydeszzz@gmail.com)
 
 ---
 

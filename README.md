@@ -180,11 +180,12 @@ dollar  mode → targetPrice = currentPrice + (targetValue / amount)
 ## 變更紀錄
 
 ### 2026-06-03
-- 文件微調。
+- 文件與版面微調
+- 顯示股價台灣 / 美東日期
 
 ### 2026-06-02
-- 新增「外觀」淺色主題：可在設定頁切換淺色／深色背景，預設深色，並會記住你的偏好。
-- 修正多項問題並優化細節：改善台股盤中報價的即時性、修正報價來源的標示，以及其他使用體驗的小幅調整。
+- 新增「外觀」淺色主題：可在設定頁切換淺色／深色背景，預設深色，並會記住使用者偏好
+- 修正多項問題並優化細節：改善台股盤中報價的即時性、修正報價來源的標示，以及其他使用體驗的小幅調整
 
 ### 2026-05-31
 - 初版發布：React + Vite 專案骨架、Yahoo 股價抓取、兩種目標模式、深色編輯風 UI。
@@ -193,7 +194,8 @@ dollar  mode → targetPrice = currentPrice + (targetValue / amount)
 
 ## 👤 Author
 Ricy Hsu
-聯繫方式：[Email] (fydeszzz@gmail.com)
+
+聯繫方式：Email (mailto:fydeszzz@gmail.com)
 
 ---
 
