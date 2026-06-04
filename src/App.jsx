@@ -12,6 +12,9 @@ const LS_LANG   = 'sellsignal:lang';
 const LS_MARKET = 'sellsignal:market';
 const LS_THEME  = 'sellsignal:theme';
 
+// Flagship default symbol per market — auto-fetched on boot / market switch.
+const DEFAULT_SYMBOL = { TW: '2330', US: 'TSLA' };
+
 // Read the saved theme once on boot. Default is 'dark' — the app was
 // designed dark-first, so an unset preference keeps the original look.
 function detectTheme() {
@@ -27,15 +30,32 @@ const fmt = (n, digits = 2) =>
     ? n.toLocaleString(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits })
     : '—';
 
-// Render a trade timestamp in Taiwan time. Live quote → "13:25". Stale
+// Render a trade timestamp in Taiwan time. Live quote → "6/4 13:25". Stale
 // previous-close → "5/20". TPE timezone is forced so the label is the
 // same regardless of where the user happens to be.
 const fmtTradedAt = (date, isLive) => {
   if (!date) return '';
   const opts = isLive
-    ? { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Taipei' }
+    ? { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Taipei' }
     : { month: 'numeric', day: 'numeric', timeZone: 'Asia/Taipei' };
   return date.toLocaleString('zh-TW', opts);
+};
+
+// US quotes are stamped in US Eastern time. Regular session shows the same
+// "M/D HH:MM" shape as TW (e.g. "6/4 13:25"); pre/post-market shows the date
+// only ("6/4"), paired with a 美東時間 marker in the UI. We build the string
+// from parts so the timezone is pinned to America/New_York and we avoid the
+// stray comma `toLocaleString('en-US', …)` would insert between date and time.
+const fmtTradedAtUs = (date, session) => {
+  if (!date) return '';
+  const p = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    month: 'numeric', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(date).reduce((acc, x) => ((acc[x.type] = x.value), acc), {});
+  return session === 'regular'
+    ? `${p.month}/${p.day} ${p.hour}:${p.minute}`
+    : `${p.month}/${p.day}`;
 };
 
 export default function App() {
@@ -99,20 +119,29 @@ export default function App() {
   const [feeAmount, setFeeAmount]   = useState('');
   const [feePaidAmt, setFeePaidAmt] = useState('');
 
-  // Swap the symbol field's default when switching market, but only if it
-  // still holds the other market's default. Don't trample user input.
+  // Boot + every market switch: snap the symbol to that market's flagship
+  // default and auto-fetch it once, so each tab lands on a live quote
+  // (台股 → 2330 台積電, 美股 → TSLA) without the user pressing 取得. Switching
+  // to 美股 is therefore what triggers the first US fetch. fetchPrice's
+  // proxy/retry logic keeps the happy path to a single request.
   useEffect(() => {
-    if (market === 'TW' && symbol === 'TSLA') setSymbol('2330');
-    if (market === 'US' && symbol === '2330') setSymbol('TSLA');
+    const def = DEFAULT_SYMBOL[market];
+    setSymbol(def);
     setMeta(null);
-    setFetchState({ status: 'idle', msg: '' });
+    onFetch(def, market);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [market]);
 
-  async function onFetch() {
+  // `symArg`/`mktArg` let callers fetch a specific symbol/market without
+  // waiting for state to flush (used by the market-switch auto-fetch below,
+  // where setSymbol hasn't applied yet). The 取得 button calls onFetch() with
+  // no args and uses the current form state.
+  async function onFetch(symArg, mktArg) {
+    const sym = symArg ?? symbol;
+    const mkt = mktArg ?? market;
     setFetchState({ status: 'loading', msg: '' });
     try {
-      const r = await fetchPrice(symbol, market);
+      const r = await fetchPrice(sym, mkt);
       setSymbol(r.symbol);
       setCurrentPrice(String(r.price));
       setMeta({
@@ -214,7 +243,7 @@ export default function App() {
             </label>
             <button
               className="btn"
-              onClick={onFetch}
+              onClick={() => onFetch()}
               disabled={fetchState.status === 'loading'}
             >
               {fetchState.status === 'loading' ? t.fetching : t.fetch}
@@ -225,11 +254,11 @@ export default function App() {
             <p className="company">
               <span>{meta.name}</span>
               {meta.exchange && <span className="muted"> · {meta.exchange}</span>}
-              {meta.tradedAt && (
+              {/* TW freshness: TWSE now hides last-match price intraday; when
+                  we fall back to the live 五檔, label it honestly as 買價/賣價
+                  (bid/ask) rather than pretending it's a matched 即時 price. */}
+              {market === 'TW' && meta.tradedAt && (
                 <span className={`freshness ${meta.isLive ? 'is-live' : 'is-stale'}`}>
-                  {/* TWSE now hides last-match price intraday; when we fall back
-                      to the live 五檔, label it honestly as 買價/賣價 (bid/ask)
-                      rather than pretending it's a matched 即時 price. */}
                   {meta.priceSource === 'bid'  ? t.bidTag
                     : meta.priceSource === 'ask' ? t.askTag
                     : meta.isLive               ? t.liveTag
@@ -238,12 +267,20 @@ export default function App() {
                   {fmtTradedAt(meta.tradedAt, meta.isLive)}
                 </span>
               )}
-              {/* US extended-hours chip: only when a pre/post price exists. */}
-              {meta.sessionPrice != null && (meta.session === 'pre' || meta.session === 'post') && (
+              {/* US regular session: live tag + date & time (US Eastern). */}
+              {market === 'US' && meta.tradedAt && meta.session === 'regular' && (
+                <span className="freshness is-live">
+                  {t.liveTag} {fmtTradedAtUs(meta.tradedAt, 'regular')}
+                </span>
+              )}
+              {/* US extended-hours chip: pre/post price + date only, and we
+                  mark it 美東時間 since trading hours are US-local. */}
+              {market === 'US' && meta.sessionPrice != null && (meta.session === 'pre' || meta.session === 'post') && (
                 <span className="freshness is-ext">
                   {meta.session === 'pre' ? t.preMarketTag : t.postMarketTag}
                   {' '}
                   {currency} {fmt(meta.sessionPrice, 2)}
+                  {meta.tradedAt && <>{' · '}{fmtTradedAtUs(meta.tradedAt, meta.session)} {t.usEasternNote}</>}
                 </span>
               )}
             </p>

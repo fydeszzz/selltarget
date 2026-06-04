@@ -193,6 +193,7 @@ dollar  mode → targetPrice = currentPrice + (targetValue / amount)
 
 ## 👤 Author
 Ricy Hsu
+聯繫方式：[Email] (fydeszzz@gmail.com)
 
 ---
 

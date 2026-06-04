@@ -159,6 +159,10 @@ html.is-scrolling::-webkit-scrollbar-thumb,
   .page {
     min-height: 0;
     height: 874px;
+    /* Pin a definite width so the phone frame is identical on every view.
+       Without this, #root shrinks to its content's intrinsic width and a
+       narrower page (e.g. 手續費試算) would visibly縮水 vs the calculator. */
+    width: var(--phone-w);
     border-radius: 56px;
     border: 1px solid var(--hairline);
     box-shadow: var(--shadow-phone);

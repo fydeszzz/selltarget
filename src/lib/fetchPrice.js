@@ -316,7 +316,7 @@ function classifyUsSession(result) {
   // Last bar with a real (non-null) close.
   let i = ts.length - 1;
   while (i >= 0 && typeof closes[i] !== 'number') i--;
-  if (i < 0) return { session: 'regular', sessionPrice: null };
+  if (i < 0) return { session: 'regular', sessionPrice: null, tradedAt: null };
 
   const t   = ts[i];
   const px  = closes[i];
@@ -329,6 +329,7 @@ function classifyUsSession(result) {
   return {
     session,
     sessionPrice: session !== 'regular' && Number.isFinite(px) ? px : null,
+    tradedAt: Number.isFinite(t) ? new Date(t * 1000) : null,   // last bar time
   };
 }
 
@@ -361,7 +362,15 @@ async function fetchUsPrice(rawInput) {
 
   // Display-only extended-hours price. The calculator keeps using `price`
   // (the regular session price) so the math is unchanged.
-  const { session, sessionPrice } = classifyUsSession(result);
+  const { session, sessionPrice, tradedAt: barTime } = classifyUsSession(result);
+
+  // Timestamp shown in the status. For the regular session prefer Yahoo's
+  // `regularMarketTime` (the official last-trade time); for pre/post fall
+  // back to the last extended-hours bar. Rendered in US Eastern by the UI.
+  const tradedAt =
+    session === 'regular' && typeof meta.regularMarketTime === 'number'
+      ? new Date(meta.regularMarketTime * 1000)
+      : barTime;
 
   return {
     symbol:   meta.symbol || symbol,
@@ -369,6 +378,7 @@ async function fetchUsPrice(rawInput) {
     price,
     currency: meta.currency || 'USD',
     exchange: meta.exchangeName || meta.fullExchangeName || '',
+    tradedAt,                                           // Date | null (US Eastern)
     session,                                            // 'pre' | 'regular' | 'post'
     sessionPrice,                                       // number | null (pre/post only)
   };
@@ -376,6 +386,28 @@ async function fetchUsPrice(rawInput) {
 
 // ─────────── public entry point ──────────────────────────────────────────
 
+// Bounded vertical retry. `proxiedJson` already gives HORIZONTAL fallback
+// (direct + each CORS proxy, stopping on the first success — so a healthy
+// fetch costs just one request). This wrapper adds a single retry of the
+// WHOLE operation for transient failures (a brief network blip, or every
+// proxy momentarily rate-limited). Capped at one retry on purpose: a
+// failing fetch makes at most two full passes, never an endless loop that
+// would hammer the free APIs/proxies.
+async function withRetry(fn, { retries = 1, delay = 600 } = {}) {
+  let lastErr;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      if (attempt < retries) await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw lastErr;
+}
+
 export async function fetchPrice(rawInput, market = 'US') {
-  return market === 'TW' ? fetchTwPrice(rawInput) : fetchUsPrice(rawInput);
+  return withRetry(() =>
+    market === 'TW' ? fetchTwPrice(rawInput) : fetchUsPrice(rawInput),
+  );
 }
