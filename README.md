@@ -21,8 +21,13 @@
 - 雙語介面（English / 繁體中文），自動偵測並記住偏好
 - 行動裝置優先的深色編輯風版面，搭配常駐底部導覽列
 
+## 適用對象
+- **定期定額存股族**：想預先設定「獲利達標就賣」的目標價，用紀律停利取代盤中情緒。
+- **短線 / 當沖交易者**：需要秒算賣出價、手續費與證交稅，嚴守當日進出紀律。
+- **所有想「進場前先想好出場」的台股 / 美股投資人**：一鍵算出該賣的價格與真實淨利。
+
 ## 快速開始範例
-本機執行後，預設開啟 **計算機** 分頁：
+本機執行後，預設開啟 **賣點試算** 分頁：
 
 > 範例：TSLA 股價 `$415`、持有 `10` 股、想要 `+10%` → 應在 **`$456.50`** 賣出。
 
@@ -30,7 +35,7 @@
 2. 輸入持有股數，選擇目標模式（報酬率 % 或 目標獲利 $）。
 3. 右側面板顯示 **目標賣出價**、總成本／總收入、獲利，台股還會附上完整的手續費＋稅金分項與淨獲利。
 
-從底部導覽列切換分頁：**手續費** 反推你的券商折數，**設定** 包含語言、關於與問題回報資訊。
+從底部導覽列切換分頁：**手續費試算** 反推你的券商折數，**設定** 包含語言、關於與問題回報資訊。
 
 ## 使用情境（Use Case）
 
@@ -43,92 +48,30 @@
 3. **報酬率／目標獲利**：手動輸入想要的目標報酬率或目標獲利。例如報酬率 `10`（%），或目標獲利金額 `10000`（TWD）。
 4. **目標賣出點股價**：下方會立即顯示你設定的最佳賣出點股價，並列出總成本、總收入、獲利與報酬（%），同時詳列買賣手續費與證交稅，最後得出你的淨獲利與淨報酬率。
 
+## Persona & Scenario
+
+### 👤 Jerry：定期定額的存股上班族
+
+Jerry 在每月發薪日固定扣款買進高股息 ETF，是個沒時間盯盤的長期存股族。他心裡有個明確目標：累積獲利達到 100 萬元就全數出場，但每次帳面數字跳動，他都得重新拿計算機按一次「到底漲到多少才賣？」
+
+★ 如何使用 Sell Signal：點選【賣點試算】分頁，切換到台股輸入 ETF 股號或名稱、按「取得」自動帶入股價，並填入持有股數，再選「目標獲利」並輸入 1000000。系統立刻算出最佳賣點，並顯示買賣手續費與證交稅，給出淨獲利；此外他也能手動更改股價和股數算出理想賣點。Jerry 從此不必每月重算，只要股價碰到賣點即可執行。
+
+### 👤 Martin：嚴守紀律的全職當沖交易者
+
+Martin 主做當沖短線。對他而言「快」和「紀律」就是一切：進場前就要知道出場價、知道這趟要付多少成本，否則小賺也可能被手續費與交易稅吃掉。
+
+★ 如何使用 Sell Signal：盤中看到機會，他點選【賣點試算】，用報酬率模式快速抓出短線目標賣價；再切到【手續費試算】，用券商折數反推這筆交易的實際手續費，連同證交稅一併試算，秒算出這筆淨利是否值得做。每一筆都先算清楚再下單，幫助他遵守紀律。
+
 ## 技術架構
 - **React 18** + **Vite 6**（單頁式網頁應用，無後端）
 - 台股即時資料來自 **TWSE MIS**（即時報價＋漲跌停）與 **TWSE OpenAPI**（名稱→代號清單）
 - 美股即時資料來自 **Yahoo Finance** v8 chart + v1 search
-- **Vite 開發代理**＋ 靜態建置用的公開 **CORS 代理備援鏈**
-
-## 本機執行
-```bash
-npm install      # 第一次才需要
-npm run dev      # 在 localhost:5173 啟動開發伺服器（自動開啟）
-npm run build    # 正式建置 → dist/
-npm run preview  # 在 localhost:5173 預覽正式建置
-```
-
-## 桌面捷徑（Windows）
-不想每次都手動 `cd` 進專案再 `npm run dev`，可以在桌面建立一個一鍵啟動的捷徑。
-
-**方法一：批次檔（最簡單）**
-
-在桌面新增一個 `SellSignal Dev.bat`，內容如下（請把路徑換成你的專案位置）：
-```bat
-@echo off
-title SellSignal Dev Server
-cd /d "C:\path\to\SellSignal"
-
-if not exist "node_modules" (
-    echo node_modules not found. Running npm install ...
-    call npm install
-)
-
-echo Starting dev server ^(npm run dev^) ...
-call npm run dev
-
-echo.
-echo Dev server stopped. Press any key to close.
-pause >nul
-```
-雙擊它就會自動切換目錄、必要時安裝套件，並啟動 Vite 開發伺服器。`cd /d` 的 `/d` 參數可同時切換磁碟機與目錄，專案在不同磁碟也適用。
-
-**方法二：有圖示的捷徑（`.lnk`）**
-
-`.lnk` 捷徑可套用自訂圖示，但 Windows 圖示只接受 `.ico` 格式（不能直接用 `.png`）。本專案提供 `make-shortcut.ps1`，會自動把 `public/stock.png` 轉成多尺寸 `.ico`（含 16 / 32 / 48 / 256 px），並在桌面建立指向上述 `.bat` 的捷徑：
-```powershell
-powershell -ExecutionPolicy Bypass -File make-shortcut.ps1
-```
-執行前請先依你的環境調整腳本最上方的 `$projectDir` 路徑。產生的 `SellSignal.ico` 為本機用途、已列入 `.gitignore`，不會進版控。
-
-> 圖示若沒立刻更新，是 Windows 圖示快取所致，重新整理桌面（F5）或重開檔案總管即可。
-
-## 專案結構
-```
-stock-calculator/
-├─ src/
-│  ├─ main.jsx                 # React 進入點（createRoot）＋ 引入 styles.css
-│  ├─ App.jsx                  # 根元件：狀態、市場/語言偏好、計算流程協調
-│  ├─ styles.css               # 完整設計系統（變數、版面、元件）
-│  ├─ lib/
-│  │  ├─ calculate.js          # 核心賣出目標計算（% / $ 模式）
-│  │  ├─ twFees.js             # 台股手續費＋證交稅、ETF 判斷
-│  │  ├─ feeDiscount.js        # 由實付手續費反推券商折數
-│  │  ├─ priceLimits.js        # 台股 ±10% 漲跌停
-│  │  ├─ fetchPrice.js         # 市場感知的股價抓取（台股＋美股）含代理鏈
-│  │  ├─ i18n.js               # en/zh 字串＋語言/市場偵測
-│  │  └─ tw-stocks.json        # 內建備援清單（約 85 檔熱門台股）
-│  └─ components/
-│     ├─ BottomNav.jsx         # 常駐底部導覽：計算機 · 折數 · 設定
-│     ├─ FeeDiscountPage.jsx   # 手續費折數反推計算機
-│     └─ SettingsPage.jsx      # 語言、關於、問題回報、App 版本
-│
-├─ public/
-│  ├─ stock.png                # 計算機分頁圖示
-│  ├─ calculator.png           # 折數分頁圖示
-│  ├─ settings.png             # 設定分頁圖示
-│  └─ logo.png                 # 品牌標誌（顯示於 設定 → 關於）
-│
-├─ index.html
-├─ vite.config.js              # MIS / TWSE / Yahoo 的開發代理
-├─ package.json
-└─ README.md
-```
 
 ## 分頁
 | 分頁 | 元件 | 說明 |
 |---|---|---|
-| <img src="public/stock.png" width="32" style="vertical-align:center">計算機 / Calculator | `App`（calc view） | 即時股價查詢、賣出目標計算、台股費用分項 |
-| <img src="public/calculator.png" width="32" style="vertical-align:center">手續費 / Discount | `FeeDiscountPage` | 反推券商手續費折數（折數） |
+| <img src="public/stock.png" width="32" style="vertical-align:center">賣點試算 / Sell-Target | `App`（calc view） | 即時股價查詢、賣出目標計算、台股費用分項 |
+| <img src="public/calculator.png" width="32" style="vertical-align:center">手續費試算 / Fee Calculator | `FeeDiscountPage` | 反推券商手續費折數（折數） |
 | <img src="public/settings.png" width="32" style="vertical-align:center">設定 / Settings | `SettingsPage` | 語言切換、關於、問題回報、App 版本 |
 
 ## 資料來源
@@ -148,6 +91,11 @@ stock-calculator/
 - **與交易所一致的台股漲跌停** — 以 TWSE tick-size 表（`priceLimits.pickTick`）與 `fetchPrice` 已回傳的官方 `limits` 取代目前的 ±10% 近似值
 
 ## 變更紀錄
+
+### 2026-06-07
+- 新增「適用對象」與「Persona & Scenario」兩個區塊，從使用者視角說明適用族群與操作流程
+- 分頁名稱統一：「計算機 / Calculator」改為「賣點試算 / Sell-Target」、「手續費 / Discount」改為「手續費試算 / Fee Calculator」（含 UI 與文件）
+- README 轉為作品集導向：移除本機執行指令、桌面捷徑、專案結構與 CORS 代理等開發細節
 
 ### 2026-06-04
 - 新增「使用情境（Use Case）」，示範台股存股賣出時機試算流程
@@ -175,4 +123,4 @@ Ricy Hsu
 ---
 
 ## 📅 Last Updated
-June 4, 2026
+June 7, 2026

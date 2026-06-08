@@ -820,7 +820,7 @@ Full-width gray rounded box for the sell price (matches the input fields). */
 }
 
 /* =============================================================
-   Bottom navigation (Calculator · Discount · Settings)
+   Bottom navigation (Sell-Target · Fee Calc · Settings)
    ============================================================= */
 .bottom-nav {
   position: sticky;

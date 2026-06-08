@@ -21,8 +21,13 @@
 - Bilingual UI (English / 繁體中文) with auto-detection and persistence
 - Mobile-first dark editorial layout with a persistent bottom nav
 
+## Who It's For
+- **Dollar-cost-averaging ETF savers** — set a "sell when profit hits the goal" target price and let discipline, not emotion, time your exit.
+- **Day traders / short-term traders** — instantly compute the sell price, commission, and transaction tax to stay strict on daily entries and exits.
+- **Any TW / US investor who wants to know the exit before the entry** — one tap to the price you should sell at and your real net profit.
+
 ## Quick Start Example
-After running the app locally, the **計算機 (Calculator)** tab opens by default:
+After running the app locally, the **賣點試算 (Sell-Target)** tab opens by default:
 
 > Example: TSLA at `$415`, holding `10` shares, want `+10%` → sell at **`$456.50`**.
 
@@ -30,7 +35,7 @@ After running the app locally, the **計算機 (Calculator)** tab opens by defau
 2. Enter how many shares you hold and choose a goal mode (報酬率 % or 目標獲利 $).
 3. The right panel shows the **target sell price**, total cost/revenue, profit, and for TW a full commission + tax breakdown with net profit.
 
-Switch tabs from the bottom nav: **手續費 (Discount)** reverse-calculates your broker discount, and **設定 (Settings)** holds language, about, and bug-report info.
+Switch tabs from the bottom nav: **手續費試算 (Fee Calculator)** reverse-calculates your broker discount, and **設定 (Settings)** holds language, about, and bug-report info.
 
 ## Use Case
 
@@ -38,97 +43,35 @@ Switch tabs from the bottom nav: **手續費 (Discount)** reverse-calculates you
 
 <img src="public/example1.png" width="300" alt="Use Case example 1: timing a TW dividend-ETF sell">
 
-1. On the **賣點試算 (Sell-target)** tab at the bottom of the home page, enter a TW stock code or name. For example `00919` (Capital Taiwan Select High Dividend), then press **取得 (Fetch)**. The app pulls the current price automatically; if the market is closed or the price looks wrong, you can type the current price by hand. Share count is always entered manually.
-2. **Commission multiplier**: TW trades carry a commission multiplier, which you can work out on the **手續費試算 (Discount)** tab. For a 40% deal enter `0.4`; leave it blank for the full rate. (Commission has a NT$20 per-trade minimum, so the multiplier has no effect on small amounts.)
+1. On the **賣點試算 (Sell-Target)** tab at the bottom of the home page, enter a TW stock code or name. For example `00919` (Capital Taiwan Select High Dividend), then press **取得 (Fetch)**. The app pulls the current price automatically; if the market is closed or the price looks wrong, you can type the current price by hand. Share count is always entered manually.
+2. **Commission multiplier**: TW trades carry a commission multiplier, which you can work out on the **手續費試算 (Fee Calculator)** tab. For a 40% deal enter `0.4`; leave it blank for the full rate. (Commission has a NT$20 per-trade minimum, so the multiplier has no effect on small amounts.)
 3. **Target return / profit**: Type the return or profit you want. For example a `10` (%) return, or a `10000` (TWD) target profit.
 4. **Target sell price**: The panel below instantly shows your optimal sell price, along with total cost, total revenue, profit, and return (%). It also itemizes the buy/sell commission and securities transaction tax, then gives your net profit and net return.
+
+## Persona & Scenario
+
+### 👤 Jerry: the salaried dollar-cost-averaging ETF saver
+
+Jerry buys high-dividend ETFs on autopilot every payday and is a long-term saver with no time to watch the market. He has one clear goal: cash out entirely once his accumulated profit reaches NT$1,000,000 — but every time the numbers move, he has to grab a calculator and recompute "so how high does it need to go before I sell?"
+
+★ How he uses Sell Signal: open the **Sell-Target** tab, switch to the TW market, enter the ETF code or name, press **Fetch** to auto-fill the price, fill in the shares held, then choose "target profit" and enter 1000000. The app instantly computes the optimal sell price, shows the buy/sell commission and securities transaction tax, and gives the net profit; he can also override the price and share count by hand to explore his ideal exit. Jerry no longer recomputes every month — he just executes the moment the price hits the target.
+
+### 👤 Martin: the disciplined full-time day trader
+
+Martin mainly does intraday day trades. For him, "speed" and "discipline" are everything: he needs to know the exit price and the cost of the trade before he enters, or even a small gain can be eaten up by commission and transaction tax.
+
+★ How he uses Sell Signal: when an opportunity appears intraday, he opens the **Sell-Target** tab and uses % return mode to quickly nail the short-term target sell price; then he switches to **Fee Calculator** and uses his broker's 折數 to reverse out the real commission, adding the transaction tax to instantly judge whether the net gain is worth the trade. He prices every trade out before placing it — which keeps him disciplined.
 
 ## Tech Stack
 - **React 18** + **Vite 6** (single-page web app, no backend)
 - Live TW data via **TWSE MIS** (real-time quote + limits) and **TWSE OpenAPI** (name→code list)
 - Live US data via **Yahoo Finance** v8 chart + v1 search
-- **Vite dev proxy** with a public **CORS-proxy fallback chain** for static builds
-
-## Running Locally
-```bash
-npm install      # first time only
-npm run dev      # starts dev server at localhost:5173 (auto-opens)
-npm run build    # production build → dist/
-npm run preview  # preview production build at localhost:5173
-```
-
-## Desktop Shortcut (Windows)
-If you would rather not `cd` into the project and run `npm run dev` every time, you can put a one-click launcher on your desktop.
-
-**Option 1: Batch file (simplest)**
-
-Create `SellSignal Dev.bat` on your desktop with the following content (swap the path for your own project location):
-```bat
-@echo off
-title SellSignal Dev Server
-cd /d "C:\path\to\SellSignal"
-
-if not exist "node_modules" (
-    echo node_modules not found. Running npm install ...
-    call npm install
-)
-
-echo Starting dev server ^(npm run dev^) ...
-call npm run dev
-
-echo.
-echo Dev server stopped. Press any key to close.
-pause >nul
-```
-Double-clicking it changes into the project directory, installs dependencies if needed, and starts the Vite dev server. The `/d` flag on `cd /d` switches both drive and directory, so it works even if the project lives on another drive.
-
-**Option 2: Shortcut with an icon (`.lnk`)**
-
-A `.lnk` shortcut can carry a custom icon, but Windows icons only accept the `.ico` format (a `.png` will not work directly). This project ships `make-shortcut.ps1`, which converts `public/stock.png` into a multi-size `.ico` (16 / 32 / 48 / 256 px) and creates a desktop shortcut pointing at the `.bat` above:
-```powershell
-powershell -ExecutionPolicy Bypass -File make-shortcut.ps1
-```
-Adjust the `$projectDir` path at the top of the script for your environment before running. The generated `SellSignal.ico` is local-only and is listed in `.gitignore`, so it stays out of version control.
-
-> If the icon does not update right away, that is the Windows icon cache. Refresh the desktop (F5) or restart File Explorer.
-
-## Project Structure
-```
-stock-calculator/
-├─ src/
-│  ├─ main.jsx                 # React entry (createRoot) + styles.css import
-│  ├─ App.jsx                  # Root: state, market/lang prefs, calc orchestration
-│  ├─ styles.css               # Full design system (tokens, layout, components)
-│  ├─ lib/
-│  │  ├─ calculate.js          # Core sell-target math (% / $ modes)
-│  │  ├─ twFees.js             # TW commission + securities tax, ETF detection
-│  │  ├─ feeDiscount.js        # Reverse-calc the broker 折數 from a paid fee
-│  │  ├─ priceLimits.js        # TWSE ±10% daily limit (漲停/跌停)
-│  │  ├─ fetchPrice.js         # Market-aware price fetcher (TW + US) w/ proxy chain
-│  │  ├─ i18n.js               # en/zh strings + language/market detection
-│  │  └─ tw-stocks.json        # Bundled fallback list (~85 top TW listings)
-│  └─ components/
-│     ├─ BottomNav.jsx         # Persistent Calculator · Discount · Settings nav
-│     ├─ FeeDiscountPage.jsx   # 手續費 discount reverse calculator
-│     └─ SettingsPage.jsx      # Language, About, Bug Report, App Version
-│
-├─ public/
-│  ├─ stock.png                # Calculator tab icon
-│  ├─ calculator.png           # Discount tab icon
-│  ├─ settings.png             # Settings tab icon
-│  └─ logo.png                 # Brand logo (shown in Settings → About)
-│
-├─ index.html
-├─ vite.config.js              # Dev proxies for MIS / TWSE / Yahoo
-├─ package.json
-└─ README.md
-```
 
 ## Tabs
 | Tab | Component | Description |
 |---|---|---|
-| <img src="public/stock.png" width="32" style="vertical-align:center">計算機 / Calculator | `App` (calc view) | Live price fetch, sell-target math, TW fee breakdown |
-| <img src="public/calculator.png" width="32" style="vertical-align:center">手續費 / Discount | `FeeDiscountPage` | Reverse-calculate broker commission discount (折數) |
+| <img src="public/stock.png" width="32" style="vertical-align:center">賣點試算 / Sell-Target | `App` (calc view) | Live price fetch, sell-target math, TW fee breakdown |
+| <img src="public/calculator.png" width="32" style="vertical-align:center">手續費試算 / Fee Calculator | `FeeDiscountPage` | Reverse-calculate broker commission discount (折數) |
 | <img src="public/settings.png" width="32" style="vertical-align:center">設定 / Settings | `SettingsPage` | Language toggle, About, Bug Report, App Version |
 
 ## Data Sources
@@ -148,6 +91,11 @@ stock-calculator/
 - **Exchange-accurate TW price limits** — replace the ±10% approximation with the TWSE tick-size table (`priceLimits.pickTick`) and the official `limits` already returned by `fetchPrice`.
 
 ## Changelog
+
+### 2026-06-07
+- Added "Who It's For" and "Persona & Scenario" sections that describe the target users and walk through their workflows from a user's point of view.
+- Unified tab names: "計算機 / Calculator" → "賣點試算 / Sell-Target", "手續費 / Discount" → "手續費試算 / Fee Calculator" (UI and docs).
+- Refocused the README for a portfolio audience: removed local-run commands, the desktop shortcut, the project structure tree, and CORS-proxy details.
 
 ### 2026-06-04
 - Added a "Use Case" section walking through a TW dividend-ETF sell-timing example.
@@ -175,4 +123,4 @@ Contact: Email (mailto:fydeszzz@gmail.com)
 ---
 
 ## 📅 Last Updated
-June 4, 2026
+June 7, 2026

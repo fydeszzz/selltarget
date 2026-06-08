@@ -51,7 +51,7 @@ export const translations = {
     usEasternNote: 'US Eastern',
     languageLabel: 'Language',
     marketLabel: 'Market',
-    nav: { calc: 'Calculator', fees: 'Discount', settings: 'Settings' },
+    nav: { calc: 'Sell-Target', fees: 'Fee Calc', settings: 'Settings' },
     feeDiscTitle: 'Commission discount',
     tradeAmount: 'Trade amount',
     feePaid: 'Commission paid',

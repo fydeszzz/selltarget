@@ -1,4 +1,4 @@
-// Persistent bottom navigation: Calculator · Fee discount · Settings.
+// Persistent bottom navigation: Sell-Target · Fee Calc · Settings.
 // Icons live in /public (stock.png, calculator.png, settings.png).
 
 const TABS = [
