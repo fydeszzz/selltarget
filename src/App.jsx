@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchPrice, searchSymbols } from './lib/fetchPrice.js';
 import { calculate } from './lib/calculate.js';
-import { priceLimits } from './lib/priceLimits.js';
 import { twFees, isTwEtf } from './lib/twFees.js';
 import { translations, detectLang, detectMarket } from './lib/i18n.js';
 import BottomNav from './components/BottomNav.jsx';
@@ -164,7 +163,6 @@ export default function App() {
         name:     r.name,
         currency: r.currency,
         exchange: r.exchange,
-        limits:   r.limits || null,        // TWSE returns official 漲跌停
         tradedAt: r.tradedAt || null,
         isLive:   !!r.isLive,
         session:      r.session || 'regular',   // US: 'pre' | 'regular' | 'post'
@@ -263,13 +261,6 @@ export default function App() {
 
   const currency = meta?.currency || (market === 'TW' ? 'TWD' : 'USD');
   const isPositive = result && result.profit >= 0;
-
-  // Always derive limits from the current input price (±10 %). Even after
-  // fetching a TW stock, edits to the price field re-flow into the limits.
-  const limits = useMemo(
-    () => priceLimits(parseFloat(currentPrice)),
-    [currentPrice],
-  );
 
   // TW broker commission + securities tax, layered on top of the raw result.
   // ETF status is read straight off the symbol code (00-prefix). Blank/invalid
@@ -440,21 +431,6 @@ export default function App() {
                 <span className="unrealized-sep">·</span>
                 {unrealized.positive ? '+' : ''}{currency} {fmt(unrealized.profit)}
               </span>
-            </div>
-          )}
-
-          {/* Daily price limits only make sense for TW (the +/-10% rule is
-              TWSE-specific). For US we omit them entirely. */}
-          {market === 'TW' && limits && (
-            <div className="limits" role="group" aria-label="Daily price limits">
-              <div className="limit limit-up">
-                <span className="limit-label">{t.limitUp}</span>
-                <span className="mono">{currency} {fmt(limits.limitUp)}</span>
-              </div>
-              <div className="limit limit-down">
-                <span className="limit-label">{t.limitDown}</span>
-                <span className="mono">{currency} {fmt(limits.limitDown)}</span>
-              </div>
             </div>
           )}
 

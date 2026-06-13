@@ -13,7 +13,6 @@
 - Two goal modes: target **% return** or target **$ profit**
 - Live price fetch for **TW stocks** (TWSE MIS) and **US stocks** (Yahoo Finance)
 - TW net-profit calculation: total cost - broker commission (optional 折數 multiplier) - securities transaction tax, with automatic ETF detection
-- Daily price-limit display (漲停 / 跌停, ±10%) for the TW market
 - Commission-discount reverse calculator: enter what you paid, see the 折數 you actually got
 - Bilingual UI (English / 繁體中文) with auto-detection and persistence
 
@@ -60,7 +59,7 @@ Martin mainly does intraday day trades. For him, "speed" and "discipline" are ev
 
 ## Tech Stack
 - **React 18** + **Vite 6** (single-page web app, no backend)
-- Live TW data via **TWSE MIS** (real-time quote + limits) and **TWSE OpenAPI** (name→code list)
+- Live TW data via **TWSE MIS** (real-time quote) and **TWSE OpenAPI** (name→code list)
 - Live US data via **Yahoo Finance** v8 chart + v1 search
 
 ## Tabs
@@ -73,7 +72,7 @@ Martin mainly does intraday day trades. For him, "speed" and "discipline" are ev
 ## Data Sources
 | Source | Purpose |
 |---|---|
-| TWSE MIS | Real-time TW quote, 漲跌停, board (上市/上櫃), industry |
+| TWSE MIS | Real-time TW quote, board (上市/上櫃), industry |
 | TWSE OpenAPI | Full listed-stock catalog for name→code lookup |
 | Yahoo Finance (v8 chart) | US real-time price + currency + exchange |
 | Yahoo Finance (v1 search) | US symbol resolution from a company name |
@@ -89,12 +88,14 @@ Martin mainly does intraday day trades. For him, "speed" and "discipline" are ev
 
 ## Changelog
 
+### 2026-06-12
+- Fixed an intermittent TW live-quote connection error (`ERR_CONNECTION_RESET`): the desktop app now retries the native fetch quickly on failure, with the proxy chain kept as a fallback.
+- Removed the TW price-limit display so the layout reads the same as the US market.
+
 ### 2026-06-10
 - Stock search now shows a type-ahead dropdown: entering a TW/US name lists every same-prefix match live, ranked with stocks first and warrants/leverage after.
 - Added an "Avg cost" field: enter your average holding price to see live unrealized P&L (current vs cost); the sell target is now based on your actual cost.
-- UI redesign: current price and average cost sit side by side, the target is one unified field (told apart by % or TWD/USD), and the layout was reorganized for modern usage habits.
-- Released a desktop app (Windows .exe) you can pin straight to the taskbar.
-- Fixed the quote freshness label (Live / Prev close).
+- UI redesign: current price and average cost sit side by side, the target is one unified field (told apart by % or TWD/USD).
 
 ### 2026-06-07
 - Added "Who It's For" and "Persona & Scenario" sections that describe the target users and walk through their workflows from a user's point of view.
@@ -126,4 +127,4 @@ Contact: Email (mailto:fydeszzz@gmail.com)
 ---
 
 ## 📅 Last Updated
-June 10, 2026
+June 12, 2026

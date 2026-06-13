@@ -12,7 +12,7 @@
     "preview": "vite preview --port 5173",
     "electron": "electron .",
     "app:start": "vite build && electron .",
-    "app:build": "vite build && electron-builder --win --config.directories.output=%LOCALAPPDATA%/SellSignal-build"
+    "app:build": "vite build && electron-builder --win --config.directories.output=%USERPROFILE%/Desktop/SellSignal-build"
   },
   "dependencies": {
     "react": "^18.3.1",

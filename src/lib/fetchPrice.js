@@ -97,12 +97,6 @@ const electronFetch = () =>
  *   sometimes serve CORS headers (e.g., TWSE OpenAPI).
  */
 async function proxiedJson(url, { tryDirect = false } = {}) {
-  // Electron: native fetch in the main process for any absolute http(s) URL.
-  const ef = electronFetch();
-  if (ef && /^https?:/i.test(url)) {
-    return ef(url);
-  }
-
   // Same-origin (Vite dev proxy or production backend) — single direct fetch.
   if (url.startsWith('/')) {
     const res = await fetch(url, { headers: { accept: 'application/json' } });
@@ -110,14 +104,35 @@ async function proxiedJson(url, { tryDirect = false } = {}) {
     return res.json();
   }
 
-  // Cross-origin — try direct (optional) then the CORS proxy fallback chain.
+  // Cross-origin. Build an ordered attempt chain and take the first success.
+  //
+  //   1. Electron native fetch (no CORS, MIS Referer injected) — the reliable
+  //      path for the desktop app.
+  //   2. A SECOND native try after a short pause. TWSE MIS occasionally resets
+  //      the connection mid-flight (net::ERR_CONNECTION_RESET); the native
+  //      stack recovers on a quick retry far more reliably than the public
+  //      proxies do. This matters most in the packaged app, which loads over
+  //      file:// — its fetch Origin is `null`, and most public CORS proxies
+  //      reject that (corsproxy 403, allorigins needs a real Origin). So the
+  //      native retry, not the proxy chain, is what actually heals a transient
+  //      reset here; doing it first also avoids stalling on a dead proxy.
+  //   3. The public CORS-proxy chain as a last resort — and the ONLY path in
+  //      the browser/dev build, where `ef` is null and the chain below is
+  //      identical to the original browser-only behaviour.
+  const ef = electronFetch();
   const attempts = [];
-  if (tryDirect) attempts.push(url);
-  for (const proxy of PROXIES) attempts.push(proxy + encodeURIComponent(url));
+  if (ef && /^https?:/i.test(url)) {
+    attempts.push({ via: 'electron', target: url });
+    attempts.push({ via: 'electron', target: url, pauseBefore: 400 });
+  }
+  if (tryDirect)               attempts.push({ via: 'fetch', target: url });
+  for (const proxy of PROXIES) attempts.push({ via: 'fetch', target: proxy + encodeURIComponent(url) });
 
   let lastErr;
-  for (const target of attempts) {
+  for (const { via, target, pauseBefore } of attempts) {
+    if (pauseBefore) await new Promise((r) => setTimeout(r, pauseBefore));
     try {
+      if (via === 'electron') return await ef(target);
       const res = await fetch(target, { headers: { accept: 'application/json' } });
       if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
       return await res.json();
@@ -236,12 +251,6 @@ async function fetchTwPrice(rawInput) {
     tradedAt,                         // Date | null
     isLive,                           // true for any intraday source
     priceSource,                      // 'matched' | 'bid' | 'ask' | 'prevClose'
-    limits:   {
-      limitUp:   parseFloat(row.u),
-      limitDown: parseFloat(row.w),
-      prevClose: y,
-      source:    'TWSE',
-    },
   };
 }
 

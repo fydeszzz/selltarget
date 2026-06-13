@@ -552,53 +552,6 @@ html.is-scrolling::-webkit-scrollbar-thumb,
 }
 
 /* =============================================================
-   Daily price limits (TW only)
-   ============================================================= */
-/* Grid forces exactly two equal columns regardless of content width.
-   `minmax(0, 1fr)` is what allows the cells to shrink below their natural
-   min-content if needed — without it, a long number would push the cell
-   wider than 50% and break the side-by-side layout. */
-.limits {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 8px;
-  padding: 4px;
-  background: var(--surface-2);
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius);
-}
-.limit {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;     /* label left, number right */
-  gap: 6px;
-  padding: 3px 9px;
-  border-radius: var(--radius-pill);
-  font-variant-numeric: tabular-nums;
-  min-width: 0;
-}
-/* TW convention: 漲 (up) is RED, 跌 (down) is GREEN — opposite of the West. */
-.limit-up   { background: rgba(248, 113, 113, 0.12); color: var(--neg); }
-.limit-down { background: rgba(74, 222, 128, 0.12); color: var(--pos); }
-.limit-label {
-  font-size: 12px;
-  font-weight: 700;
-  opacity: 0.9;
-  flex-shrink: 0;
-}
-.limit .mono {
-  font-size: 12px;
-  font-weight: 600;
-  color: inherit;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  /* Reserve room for "TWD 9999.99" (11 chars). Using `ch` ties the
-     reservation to the monospace digit width, so it scales with font-size. */
-  min-width: 7.5ch;
-  text-align: right;
-}
-
-/* =============================================================
    Mode toggle (% / $)
    ============================================================= */
 .mode-toggle {
