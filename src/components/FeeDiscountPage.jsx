@@ -3,11 +3,15 @@ import { feeDiscount } from '../lib/feeDiscount.js';
 import { asset } from '../lib/asset.js';
 import { fmt } from '../lib/format.js';
 
-export default function FeeDiscountPage({ t, lang, amount, setAmount, feePaid, setFeePaid }) {
+export default function FeeDiscountPage({ t, lang, amount, setAmount, feePaid, setFeePaid, onApply }) {
   const result = useMemo(
     () => feeDiscount({ amount: parseFloat(amount), feePaid: parseFloat(feePaid) }),
     [amount, feePaid],
   );
+  // A valid reverse-calc vs. the explicit "overpaid" mistake vs. blank input.
+  // Kept apart so the page can explain the mistake instead of silently blanking.
+  const ok       = result && !result.error;
+  const overpaid = result?.error === 'overpaid';
 
   return (
     <main className="grid fees-page">
@@ -57,7 +61,7 @@ export default function FeeDiscountPage({ t, lang, amount, setAmount, feePaid, s
       <section className="panel output">
         <div className="output-head">
           <span className="kicker">{t.yourDiscount}</span>
-          {result && (
+          {ok && (
             <span className="hero">
               <span className="hero-number">
                 {lang === 'zh' ? `${fmt(result.zhe, 1)} 折` : `×${fmt(result.discount, 2)}`}
@@ -66,7 +70,7 @@ export default function FeeDiscountPage({ t, lang, amount, setAmount, feePaid, s
           )}
         </div>
 
-        {result ? (
+        {ok ? (
           <>
             <dl className="stats">
               <div>
@@ -79,7 +83,17 @@ export default function FeeDiscountPage({ t, lang, amount, setAmount, feePaid, s
               </div>
             </dl>
             {result.minApplied && <p className="output-note">{t.feeDiscMinNote}</p>}
+            {/* Carry the reverse-calculated 折數 over to the sell-target page's
+                commission multiplier (2-dp, matching that field's step). */}
+            <button
+              className="btn apply-btn"
+              onClick={() => onApply?.(Math.round(result.discount * 100) / 100)}
+            >
+              {t.feeDiscApply}
+            </button>
           </>
+        ) : overpaid ? (
+          <p className="error">{t.feeDiscOverpaid}</p>
         ) : (
           <p className="muted">{t.feeDiscPlaceholder}</p>
         )}

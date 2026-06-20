@@ -102,7 +102,11 @@ export default function App() {
   // the basis (original forward-planning behaviour). When filled it becomes
   // the true cost basis for return %, totals, and the unrealized strip.
   const [costBasis, setCostBasis] = useState('');
-  const [amount, setAmount] = useState('10');
+  const [amount, setAmount] = useState('1');
+  // TW lot vs odd-lot unit for the 股數 field. 1 張 = 1000 股. The input box
+  // always holds the raw number typed; `shares` (derived below) is what the
+  // math actually uses, so switching units never rewrites the user's input.
+  const [sharesUnit, setSharesUnit] = useState('lot');
   const [mode, setMode] = useState('percent');
   // Per-mode targets so each keeps its own sensible default
   // (% return = 10, $ profit = 1000). targetValue/setTargetValue below are
@@ -247,17 +251,25 @@ export default function App() {
   }, []);
 
   // --- derived --------------------------------------------------------------
+  // Effective share count fed to the math. TW lot mode multiplies by 1000
+  // (1 張 = 1000 股); odd-lots and US are taken as the raw number.
+  const sharesNum = parseFloat(amount);
+  const shares =
+    market === 'TW' && sharesUnit === 'lot' && Number.isFinite(sharesNum)
+      ? sharesNum * 1000
+      : sharesNum;
+
   // calculate() returns null on invalid input (never throws), which the UI
   // renders as the placeholder hint.
   const result = useMemo(
     () => calculate({
       currentPrice: parseFloat(currentPrice),
-      amount: parseFloat(amount),
+      amount: shares,
       mode,
       targetValue: parseFloat(targetValue),
       costBasis: parseFloat(costBasis),
     }),
-    [currentPrice, amount, mode, targetValue, costBasis],
+    [currentPrice, shares, mode, targetValue, costBasis],
   );
 
   // Live unrealized P&L: where the position stands NOW vs the average cost.
@@ -266,15 +278,31 @@ export default function App() {
   const unrealized = useMemo(() => {
     const cb = parseFloat(costBasis);
     const cp = parseFloat(currentPrice);
-    const sh = parseFloat(amount);
+    const sh = shares;
     if (![cb, cp, sh].every(Number.isFinite) || cb <= 0 || sh <= 0) return null;
     const profit = (cp - cb) * sh;
     const pct = ((cp - cb) / cb) * 100;
     return { profit, pct, positive: profit >= 0 };
-  }, [costBasis, currentPrice, amount]);
+  }, [costBasis, currentPrice, shares]);
 
   const currency = meta?.currency || (market === 'TW' ? 'TWD' : 'USD');
+  // Money decimals: TW figures are whole-NT$ in practice (and the broker bills
+  // 無條件捨去), so TW totals/fees show no decimals; US keeps cents. Percentages
+  // are unaffected (always 2 dp).
+  const md = market === 'TW' ? 0 : 2;
   const isPositive = result && result.profit >= 0;
+
+  // P1 — make the target's reference frame explicit. When a cost basis is
+  // supplied, 目標報酬 % is measured from COST (current price drops out of the
+  // target math), so we label the basis AND show how far the target sits from
+  // the live price — otherwise "賣在 1045 = +10%" silently means +10% vs cost,
+  // not vs the 現價 the user also typed.
+  const costBasisValid = Number.isFinite(parseFloat(costBasis)) && parseFloat(costBasis) > 0;
+  const cpNum = parseFloat(currentPrice);
+  const vsCurrentPct =
+    result && costBasisValid && Number.isFinite(cpNum) && cpNum > 0
+      ? ((result.targetPrice - cpNum) / cpNum) * 100
+      : null;
 
   // TW broker commission + securities tax, layered on top of the raw result.
   // ETF status is read straight off the symbol code (00-prefix). Blank/invalid
@@ -443,7 +471,7 @@ export default function App() {
               <span className="unrealized-val mono">
                 {unrealized.positive ? '+' : ''}{fmt(unrealized.pct)}%
                 <span className="unrealized-sep">·</span>
-                {unrealized.positive ? '+' : ''}{currency} {fmt(unrealized.profit)}
+                {unrealized.positive ? '+' : ''}{currency} {fmt(unrealized.profit, md)}
               </span>
             </div>
           )}
@@ -453,19 +481,52 @@ export default function App() {
               same height and the row's flex-end alignment holds — putting
               the hint inside the fee field made it taller and visibly
               knocked 股數 out of line. On US the fee field is omitted. */}
+          {/* 股數（台股含 張/零股 單位切換）與手續費倍率同一列，欄寬與上方
+              現價／成本均價對齊；單位切換與輸入框等高並排。美股無「張」與手續費，
+              故只留股數欄。 */}
           <div className="row">
             <label className="field">
               <span className="label">{t.shares}</span>
-              <input
-                className="input mono"
-                type="number"
-                step="1"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
+              {market === 'TW' ? (
+                <div className="shares-row">
+                  <input
+                    className="input mono"
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="1"
+                  />
+                  <div className="mode-toggle shares-unit" role="tablist" aria-label={t.shares}>
+                    <button
+                      role="tab"
+                      aria-selected={sharesUnit === 'lot'}
+                      className={`tab ${sharesUnit === 'lot' ? 'on' : ''}`}
+                      onClick={() => setSharesUnit('lot')}
+                    >{t.sharesLot}</button>
+                    <button
+                      role="tab"
+                      aria-selected={sharesUnit === 'odd'}
+                      className={`tab ${sharesUnit === 'odd' ? 'on' : ''}`}
+                      onClick={() => setSharesUnit('odd')}
+                    >{t.sharesOdd}</button>
+                  </div>
+                </div>
+              ) : (
+                <input
+                  className="input mono"
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="1"
+                />
+              )}
             </label>
             {market === 'TW' && (
-              <label className="field grow">
+              <label className="field">
                 <span className="label">
                   {t.feeMultiplier}
                   <span className="label-note"> · {t.feeOptional}</span>
@@ -535,22 +596,29 @@ export default function App() {
               <div className="input mono sell-price-value">{fmt(result.targetPrice, 2)}</div>
             </div>
           )}
+          {/* P1 — how far the target sits from the live price. Shown only when a
+              cost basis makes the target % measure from cost, not current. */}
+          {vsCurrentPct != null && (
+            <p className="sell-subnote">
+              {t.vsCurrent} {vsCurrentPct >= 0 ? '+' : ''}{fmt(vsCurrentPct)}%
+            </p>
+          )}
 
           {result ? (
             <>
               <dl className="stats">
                 <div>
                   <dt>{t.totalCost}</dt>
-                  <dd className="mono">{currency} {fmt(result.totalCost)}</dd>
+                  <dd className="mono">{currency} {fmt(result.totalCost, md)}</dd>
                 </div>
                 <div>
                   <dt>{t.totalRevenue}</dt>
-                  <dd className="mono">{currency} {fmt(result.totalRevenue)}</dd>
+                  <dd className="mono">{currency} {fmt(result.totalRevenue, md)}</dd>
                 </div>
                 <div>
                   <dt>{t.profit}</dt>
                   <dd className={`mono ${isPositive ? 'pos' : 'neg'}`}>
-                    {isPositive ? '+' : ''}{currency} {fmt(result.profit)}
+                    {isPositive ? '+' : ''}{currency} {fmt(result.profit, md)}
                   </dd>
                 </div>
                 <div>
@@ -567,23 +635,23 @@ export default function App() {
                 <dl className="fees">
                   <div className="fee-row">
                     <dt>{t.buyFee}</dt>
-                    <dd className="mono neg">-{currency} {fmt(fees.buyFee)}</dd>
+                    <dd className="mono neg">-{currency} {fmt(fees.buyFee, md)}</dd>
                   </div>
                   <div className="fee-row">
                     <dt>{t.sellFee}</dt>
-                    <dd className="mono neg">-{currency} {fmt(fees.sellFee)}</dd>
+                    <dd className="mono neg">-{currency} {fmt(fees.sellFee, md)}</dd>
                   </div>
                   <div className="fee-row">
                     <dt>
                       {t.secTax}
                       {isETF && <span className="etf-tag">{t.etfTag}</span>}
                     </dt>
-                    <dd className="mono neg">-{currency} {fmt(fees.tax)}</dd>
+                    <dd className="mono neg">-{currency} {fmt(fees.tax, md)}</dd>
                   </div>
                   <div className="fee-row net">
                     <dt>{t.netProfit}</dt>
                     <dd className={`mono ${isNetPositive ? 'pos' : 'neg'}`}>
-                      {isNetPositive ? '+' : ''}{currency} {fmt(fees.netProfit)}
+                      {isNetPositive ? '+' : ''}{currency} {fmt(fees.netProfit, md)}
                     </dd>
                   </div>
                   <div className="fee-row net">
@@ -623,6 +691,13 @@ export default function App() {
           setAmount={setFeeAmount}
           feePaid={feePaidAmt}
           setFeePaid={setFeePaidAmt}
+          onApply={(mult) => {
+            // Carry the reverse-calculated 折數 into the sell-target page's
+            // commission multiplier. It only applies to TW, so land there.
+            setFeeDiscount(String(mult));
+            setMarket('TW');
+            setView('calc');
+          }}
         />
       )}
       {view === 'settings' && <SettingsPage lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} t={t} />}

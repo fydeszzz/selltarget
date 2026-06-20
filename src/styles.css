@@ -161,7 +161,7 @@ html.is-scrolling::-webkit-scrollbar-thumb,
     height: 874px;
     /* Pin a definite width so the phone frame is identical on every view.
        Without this, #root shrinks to its content's intrinsic width and a
-       narrower page (e.g. 手續費試算) would visibly縮水 vs the calculator. */
+       narrower page (e.g. 手續費折數) would visibly縮水 vs the calculator. */
     width: var(--phone-w);
     border-radius: 56px;
     border: 1px solid var(--hairline);
@@ -687,6 +687,7 @@ Full-width gray rounded box for the sell price (matches the input fields). */
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text);
+  white-space: nowrap;   /* keep "TWD 2,000,000" on one line */
 }
 .stats dd.pos { color: var(--pos); }
 .stats dd.neg { color: var(--neg); }
@@ -766,6 +767,26 @@ Full-width gray rounded box for the sell price (matches the input fields). */
    input's baseline — .mode-toggle's own align-self:flex-start was meant
    for column layouts and would pin it to the row's top. */
 .goal-modes { flex: 0 0 auto; align-self: flex-end; }
+
+/* 股數輸入框 + 張/零股 單位切換並排，且切換高度與輸入框一致：父層 stretch、
+   toggle align-self:stretch，並清掉 .tab 的 min-height 讓它跟著輸入框高度走。 */
+.shares-row { display: flex; gap: 8px; align-items: stretch; }
+.shares-row .input { flex: 1 1 0; }
+.shares-unit { flex: 0 0 auto; align-self: stretch; padding: 3px; }
+.shares-unit .tab { min-height: 0; padding: 4px 9px; display: flex; align-items: center; }
+
+/* "距現價 +X%" under the sell price — the live-price reference frame for the
+   target, shown only when a cost basis makes the headline % measure from cost. */
+.sell-subnote {
+  margin: 4px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* "套用到賣點試算" button on the fee-discount page. */
+.apply-btn { align-self: flex-start; margin-top: 6px; }
 
 /* ── Unrealized P&L strip (current price vs average cost) ─────────────────
    Sits directly under the 現價 | 成本均價 pair so it reads as a comparison
@@ -888,7 +909,7 @@ Full-width gray rounded box for the sell price (matches the input fields). */
 }
 
 /* =============================================================
-   Bottom navigation (Sell-Target · Fee Calc · Settings)
+   Bottom navigation (Sell-Target · Fee Discount · Settings)
    ============================================================= */
 .bottom-nav {
   position: sticky;

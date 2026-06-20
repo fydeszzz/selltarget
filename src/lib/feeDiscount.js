@@ -20,7 +20,10 @@
 //      minApplied:    boolean,  // true when amount is so small the NT$20 floor
 //                               // dominates → 折數 is not meaningful
 //    }
-//  Returns `null` for invalid input.
+//  Returns `null` for blank / not-yet-fillable input (the UI shows its neutral
+//  placeholder), or `{ error: 'overpaid' }` when the commission entered is
+//  higher than the full standard rate — a real mistake the UI must explain
+//  rather than silently blanking the result.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { COMMISSION_RATE, COMMISSION_MIN } from './twFees.js';
@@ -33,7 +36,9 @@ export function feeDiscount({ amount, feePaid }) {
 
   const baseFee = a * COMMISSION_RATE;        // full-rate commission
   if (baseFee <= 0) return null;
-  if (f > baseFee) return null;               // fee paid exceeds full rate — nonsensical discount
+  // Fee paid exceeds the full standard rate — not a valid discount. Signal it
+  // explicitly so the page can prompt a re-entry instead of going blank.
+  if (f > baseFee) return { error: 'overpaid' };
 
   const discount      = f / baseFee;           // e.g. 0.60
   const zhe           = discount * 10;          // e.g. 6.0 折

@@ -30,7 +30,7 @@ On launch, the **賣點試算 (Sell-Target)** tab opens by default:
 2. Enter your average cost and how many shares you hold, then choose a goal mode (報酬率 % or 目標獲利 $).
 3. The right panel shows the **target sell price**, total cost/revenue, profit, and for TW a full commission + tax breakdown with net profit.
 
-* Switch tabs from the bottom nav: **手續費試算 (Fee Calculator)** reverse-calculates your broker discount, and **設定 (Settings)** holds language, about, and bug-report info.
+* Switch tabs from the bottom nav: **手續費折數 (Fee Discount)** reverse-calculates your broker discount, and **設定 (Settings)** holds language, about, and bug-report info.
 
 ## Use Case
 
@@ -39,7 +39,7 @@ On launch, the **賣點試算 (Sell-Target)** tab opens by default:
 <img src="public/example1.png" width="300" alt="Use Case example 1: timing a TW dividend-ETF sell">
 
 1. On the **賣點試算 (Sell-Target)** tab at the bottom of the home page, enter a TW stock code or name. For example `2330` (TSMC), then press **取得 (Fetch)**. The app pulls the current price automatically; if the market is closed or the price looks wrong, you can type the current price by hand; the average cost and share count are entered manually.
-2. **Commission multiplier**: TW trades carry a commission multiplier, which you can work out on the **手續費試算 (Fee Calculator)** tab. For a 40% deal enter `0.4`; leave it blank for the full rate. (The multiplier has no effect on small trade amounts.)
+2. **Commission multiplier**: TW trades carry a commission multiplier, which you can work out on the **手續費折數 (Fee Discount)** tab. For a 40% deal enter `0.4`; leave it blank for the full rate. (The multiplier has no effect on small trade amounts.)
 3. **Target return / profit**: Type the return or profit you want. For example a `10` (%) return, or a `10000` (TWD) target profit.
 4. **Target sell price**: The panel below instantly shows your optimal sell price, along with total cost, total revenue, profit, and return (%). It also itemizes the buy/sell commission and securities transaction tax, then gives your net profit and net return.
 
@@ -55,7 +55,7 @@ Jerry buys high-dividend ETFs on autopilot every payday and is a long-term saver
 
 Martin mainly does intraday day trades. For him, "speed" and "discipline" are everything: he needs to know the exit price and the cost of the trade before he enters, or even a small gain can be eaten up by commission and transaction tax.
 
-★ How he uses Sell Signal: when an opportunity appears intraday, he opens the **Sell-Target** tab and uses % return mode to quickly nail the short-term target sell price; then he switches to **Fee Calculator** and uses his broker's 折數 to reverse out the real commission, adding the transaction tax to instantly judge whether the net gain is worth the trade. He prices every trade out before placing it — which keeps him disciplined.
+★ How he uses Sell Signal: when an opportunity appears intraday, he opens the **Sell-Target** tab and uses % return mode to quickly nail the short-term target sell price; then he switches to **Fee Discount** and uses his broker's 折數 to reverse out the real commission, adding the transaction tax to instantly judge whether the net gain is worth the trade. He prices every trade out before placing it — which keeps him disciplined.
 
 ## Tech Stack
 - **React 18** + **Vite 6** (single-page web app, no backend)
@@ -66,7 +66,7 @@ Martin mainly does intraday day trades. For him, "speed" and "discipline" are ev
 | Tab | Component | Description |
 |---|---|---|
 | <img src="public/stock.png" width="32" style="vertical-align:center">賣點試算 / Sell-Target | `App` (calc view) | Live price fetch, sell-target math, TW fee breakdown |
-| <img src="public/calculator.png" width="32" style="vertical-align:center">手續費試算 / Fee Calculator | `FeeDiscountPage` | Reverse-calculate broker commission discount (折數) |
+| <img src="public/calculator.png" width="32" style="vertical-align:center">手續費折數 / Fee Discount | `FeeDiscountPage` | Reverse-calculate broker commission discount, and apply it to Sell-Target in one tap |
 | <img src="public/settings.png" width="32" style="vertical-align:center">設定 / Settings | `SettingsPage` | Language toggle, About, Bug Report, App Version |
 
 ## Data Sources
@@ -87,6 +87,13 @@ Martin mainly does intraday day trades. For him, "speed" and "discipline" are ev
 - **Disposition-stock calendar (處置股日曆)** — live updates of stocks about to be, or currently under, disposition.
 
 ## Changelog
+
+### 2026-06-19
+- Sell price now shows a "vs current" reference percentage
+- TW share count can switch between lots and odd-lots
+- Apply a fee discount straight to the sell-target calculator
+- More reliable price fetching
+- Updated the app icon
 
 ### 2026-06-12
 - Fixed an intermittent TW live-quote connection error (`ERR_CONNECTION_RESET`): the desktop app now retries the native fetch quickly on failure, with the proxy chain kept as a fallback.
@@ -127,4 +134,4 @@ Contact: Email (mailto:fydeszzz@gmail.com)
 ---
 
 ## 📅 Last Updated
-June 12, 2026
+June 19, 2026

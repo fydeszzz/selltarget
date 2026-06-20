@@ -82,7 +82,7 @@ function createWindow() {
     minHeight: 640,
     title: 'SellSignal',
     backgroundColor: '#0A0A0B',
-    icon: path.join(__dirname, '..', 'SellSignal.ico'),
+    icon: path.join(__dirname, '..', 'icon.png'),
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),

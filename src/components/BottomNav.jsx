@@ -1,4 +1,4 @@
-// Persistent bottom navigation: Sell-Target · Fee Calc · Settings.
+// Persistent bottom navigation: Sell-Target · Fee Discount · Settings.
 // Icons live in /public (stock.png, calculator.png, settings.png).
 import { asset } from '../lib/asset.js';
 

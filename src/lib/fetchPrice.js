@@ -83,6 +83,36 @@ function twIndustryName(code) {
 const electronFetch = () =>
   (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.fetchJson) || null;
 
+// Per-request timeout. A hung connection (a proxy stalls, the network drops)
+// would otherwise leave fetch() pending forever and the UI stuck on 查詢中….
+// We abort after this many ms so the next proxy — and ultimately withRetry()'s
+// auto re-query — can take over, then surface a real error instead of an
+// indefinite spinner.
+const REQUEST_TIMEOUT_MS = 5000;
+
+// fetch() with an AbortController timeout. Aborting actually cancels the
+// underlying request (frees the socket / proxy slot), unlike a bare Promise
+// race that leaves the connection dangling.
+async function fetchWithTimeout(target, opts = {}, ms = REQUEST_TIMEOUT_MS) {
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), ms);
+  try {
+    return await fetch(target, { ...opts, signal: ac.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Race a non-abortable promise (the Electron native fetch) against a timeout so
+// it can't hang the attempt chain either.
+function withTimeoutRace(promise, ms = REQUEST_TIMEOUT_MS) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('timeout')), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 /**
  * Fetch JSON with proxy fallback.
  *
@@ -99,7 +129,7 @@ const electronFetch = () =>
 async function proxiedJson(url, { tryDirect = false } = {}) {
   // Same-origin (Vite dev proxy or production backend) — single direct fetch.
   if (url.startsWith('/')) {
-    const res = await fetch(url, { headers: { accept: 'application/json' } });
+    const res = await fetchWithTimeout(url, { headers: { accept: 'application/json' } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();
   }
@@ -132,8 +162,8 @@ async function proxiedJson(url, { tryDirect = false } = {}) {
   for (const { via, target, pauseBefore } of attempts) {
     if (pauseBefore) await new Promise((r) => setTimeout(r, pauseBefore));
     try {
-      if (via === 'electron') return await ef(target);
-      const res = await fetch(target, { headers: { accept: 'application/json' } });
+      if (via === 'electron') return await withTimeoutRace(ef(target));
+      const res = await fetchWithTimeout(target, { headers: { accept: 'application/json' } });
       if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
       return await res.json();
     } catch (e) {
