@@ -38,7 +38,7 @@ const fmtTradedAt = (date, isLive) => {
 
 // US quotes are stamped in US Eastern time. Regular session shows the same
 // "M/D HH:MM" shape as TW (e.g. "6/4 13:25"); pre/post-market shows the date
-// only ("6/4"), paired with a 美東時間 marker in the UI. We build the string
+// only ("6/4"), paired with a US-Eastern-time marker in the UI. We build the string
 // from parts so the timezone is pinned to America/New_York and we avoid the
 // stray comma `toLocaleString('en-US', …)` would insert between date and time.
 const fmtTradedAtUs = (date, session) => {
@@ -103,16 +103,17 @@ export default function App() {
   // the true cost basis for return %, totals, and the unrealized strip.
   const [costBasis, setCostBasis] = useState('');
   const [amount, setAmount] = useState('1');
-  // TW lot vs odd-lot unit for the 股數 field. 1 張 = 1000 股. The input box
+  // TW lot vs odd-lot unit for the shares field. 1 lot = 1000 shares. The input box
   // always holds the raw number typed; `shares` (derived below) is what the
   // math actually uses, so switching units never rewrites the user's input.
   const [sharesUnit, setSharesUnit] = useState('lot');
   const [mode, setMode] = useState('percent');
-  // Per-mode targets so each keeps its own sensible default
-  // (% return = 10, $ profit = 1000). targetValue/setTargetValue below are
-  // derived aliases, so all downstream usage stays unchanged.
-  const [percentValue, setPercentValue] = useState('10');
-  const [dollarValue,  setDollarValue]  = useState('1000');
+  // Per-mode targets, each starting blank so the field shows only its
+  // placeholder hint until the user types — the result then animates in from
+  // empty, making the entry feel more responsive. targetValue/setTargetValue
+  // below are derived aliases, so all downstream usage stays unchanged.
+  const [percentValue, setPercentValue] = useState('');
+  const [dollarValue,  setDollarValue]  = useState('');
   const targetValue    = mode === 'percent' ? percentValue : dollarValue;
   const setTargetValue = mode === 'percent' ? setPercentValue : setDollarValue;
   const [feeDiscount, setFeeDiscount] = useState('');
@@ -134,7 +135,8 @@ export default function App() {
   const mountedRef   = useRef(true);
   const fetchIdRef   = useRef(0);
 
-  // 手續費折數頁的輸入提升到 App，讓切換分頁時保留（重新整理/關閉 App 才重置）。
+  // Fee-discount page inputs live in App so they persist across tab switches
+  // (they reset only on reload / app close).
   const [feeAmount, setFeeAmount]   = useState('');
   const [feePaidAmt, setFeePaidAmt] = useState('');
 
@@ -142,10 +144,10 @@ export default function App() {
   // so it can sit in the market-switch effect's dependency array — the rigorous
   // alternative to an exhaustive-deps disable. All callers pass sym/mkt
   // explicitly (the market-switch auto-fetch can't wait for setSymbol to flush;
-  // the 取得 button / Enter key pass the current form state).
+  // the fetch button / Enter key pass the current form state).
   const onFetch = useCallback(async (sym, mkt) => {
     // Every fetch ends the "user is typing" phase. Without this, clicking
-    // 取得 leaves typingRef true, and the setSymbol(r.symbol) writeback
+    // the fetch button leaves typingRef true, and the setSymbol(r.symbol) writeback
     // below re-triggers the type-ahead effect — popping the dropdown open
     // again over the freshly fetched quote.
     typingRef.current = false;
@@ -180,7 +182,10 @@ export default function App() {
       setFetchState({ status: 'success', msg: '' });
     } catch (e) {
       if (stale()) return;
-      setFetchState({ status: 'error', msg: e.message });
+      // isNetwork (set by fetchPrice for transport failures) lets the render
+      // swap the raw technical text for a friendly localized message. We keep
+      // the original msg as a fallback for genuine data errors (no-match etc.).
+      setFetchState({ status: 'error', msg: e.message, isNetwork: !!(e && e.isNetwork) });
     }
   }, []);
 
@@ -216,7 +221,7 @@ export default function App() {
     onFetch(s.code, market);
   }, [onFetch, market]);
 
-  // Keyboard nav over the dropdown; falls through to a plain 取得 on Enter
+  // Keyboard nav over the dropdown; falls through to a plain fetch on Enter
   // when nothing is highlighted.
   const onSymbolKeyDown = (e) => {
     if (showSug && suggestions.length) {
@@ -230,8 +235,8 @@ export default function App() {
 
   // Boot + every market switch: snap the symbol to that market's flagship
   // default and auto-fetch it once, so each tab lands on a live quote
-  // (台股 → 2330 台積電, 美股 → TSLA) without the user pressing 取得. Switching
-  // to 美股 is therefore what triggers the first US fetch. fetchPrice's
+  // (TW → 2330, US → TSLA) without the user pressing fetch. Switching to the
+  // US tab is therefore what triggers the first US fetch. fetchPrice's
   // proxy/retry logic keeps the happy path to a single request. onFetch is
   // identity-stable, so this runs only when `market` actually changes.
   useEffect(() => {
@@ -243,7 +248,12 @@ export default function App() {
 
   // Unmount teardown: cancel any pending blur timer (Leak 1) and mark the
   // component dead so in-flight onFetch calls skip setState (Leak 2).
+  // The setup line re-arms mountedRef on every (re)mount: React 18 StrictMode
+  // simulates mount→unmount→mount in dev, running the cleanup once — without
+  // this reset, mountedRef would stay false and stale() would discard EVERY
+  // fetch result, freezing the UI on "Loading…". (Also correct for any real remount.)
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       clearTimeout(blurTimerRef.current);
@@ -252,24 +262,33 @@ export default function App() {
 
   // --- derived --------------------------------------------------------------
   // Effective share count fed to the math. TW lot mode multiplies by 1000
-  // (1 張 = 1000 股); odd-lots and US are taken as the raw number.
+  // (1 lot = 1000 shares); odd-lots and US are taken as the raw number.
   const sharesNum = parseFloat(amount);
   const shares =
     market === 'TW' && sharesUnit === 'lot' && Number.isFinite(sharesNum)
       ? sharesNum * 1000
       : sharesNum;
 
+  // Current price must be a real above-1 quote. Blank (NaN) stays neutral and
+  // shows the placeholder hint; an entered value of ≤1 (e.g. 0) is treated as
+  // an input error so the output panel shows a price error instead of a bogus
+  // result. Real fetched prices are always >1, so this only fires on manual
+  // mis-entry.
+  const cpParsed = parseFloat(currentPrice);
+  const priceInvalid = Number.isFinite(cpParsed) && cpParsed <= 1;
+
   // calculate() returns null on invalid input (never throws), which the UI
-  // renders as the placeholder hint.
+  // renders as the placeholder hint. We also force null when priceInvalid so
+  // the dedicated price-error message takes over.
   const result = useMemo(
-    () => calculate({
+    () => priceInvalid ? null : calculate({
       currentPrice: parseFloat(currentPrice),
       amount: shares,
       mode,
       targetValue: parseFloat(targetValue),
       costBasis: parseFloat(costBasis),
     }),
-    [currentPrice, shares, mode, targetValue, costBasis],
+    [currentPrice, shares, mode, targetValue, costBasis, priceInvalid],
   );
 
   // Live unrealized P&L: where the position stands NOW vs the average cost.
@@ -279,24 +298,27 @@ export default function App() {
     const cb = parseFloat(costBasis);
     const cp = parseFloat(currentPrice);
     const sh = shares;
+    // Same above-1 price rule as the main result: a ≤1 current price is an
+    // input error, so don't render a nonsense unrealized figure from it.
+    if (priceInvalid) return null;
     if (![cb, cp, sh].every(Number.isFinite) || cb <= 0 || sh <= 0) return null;
     const profit = (cp - cb) * sh;
     const pct = ((cp - cb) / cb) * 100;
     return { profit, pct, positive: profit >= 0 };
-  }, [costBasis, currentPrice, shares]);
+  }, [costBasis, currentPrice, shares, priceInvalid]);
 
   const currency = meta?.currency || (market === 'TW' ? 'TWD' : 'USD');
   // Money decimals: TW figures are whole-NT$ in practice (and the broker bills
-  // 無條件捨去), so TW totals/fees show no decimals; US keeps cents. Percentages
+  // in whole NT$), so TW totals/fees show no decimals; US keeps cents. Percentages
   // are unaffected (always 2 dp).
   const md = market === 'TW' ? 0 : 2;
   const isPositive = result && result.profit >= 0;
 
   // P1 — make the target's reference frame explicit. When a cost basis is
-  // supplied, 目標報酬 % is measured from COST (current price drops out of the
-  // target math), so we label the basis AND show how far the target sits from
-  // the live price — otherwise "賣在 1045 = +10%" silently means +10% vs cost,
-  // not vs the 現價 the user also typed.
+  // supplied, the target return % is measured from COST (current price drops
+  // out of the target math), so we label the basis AND show how far the target
+  // sits from the live price — otherwise "sell at 1045 = +10%" silently means
+  // +10% vs cost, not vs the current price the user also typed.
   const costBasisValid = Number.isFinite(parseFloat(costBasis)) && parseFloat(costBasis) > 0;
   const cpNum = parseFloat(currentPrice);
   const vsCurrentPct =
@@ -398,8 +420,8 @@ export default function App() {
               <span>{meta.name}</span>
               {meta.exchange && <span className="muted"> · {meta.exchange}</span>}
               {/* TW freshness: any intraday source (matched price OR live
-                  五檔 bid/ask) is labelled 即時; only the previous-close
-                  fallback is marked 昨收. */}
+                  best-5 bid/ask) is labelled "live"; only the previous-close
+                  fallback is marked "prev close". */}
               {market === 'TW' && meta.tradedAt && (
                 <span className={`freshness ${meta.isLive ? 'is-live' : 'is-stale'}`}>
                   {meta.isLive ? t.liveTag : t.prevCloseTag}
@@ -407,14 +429,16 @@ export default function App() {
                   {fmtTradedAt(meta.tradedAt, meta.isLive)}
                 </span>
               )}
-              {/* US regular session: live tag + date & time (US Eastern). */}
+              {/* US regular session: "live" only while the market is actually
+                  open; otherwise the regularMarketPrice is the close, so we
+                  label it "Close" with the same date & time (US Eastern). */}
               {market === 'US' && meta.tradedAt && meta.session === 'regular' && (
-                <span className="freshness is-live">
-                  {t.liveTag} {fmtTradedAtUs(meta.tradedAt, 'regular')}
+                <span className={`freshness ${meta.isLive ? 'is-live' : 'is-stale'}`}>
+                  {meta.isLive ? t.liveTag : t.closeTag} {fmtTradedAtUs(meta.tradedAt, 'regular')}
                 </span>
               )}
               {/* US extended-hours chip: pre/post price + date only, and we
-                  mark it 美東時間 since trading hours are US-local. */}
+                  mark it US Eastern time since trading hours are US-local. */}
               {market === 'US' && meta.sessionPrice != null && (meta.session === 'pre' || meta.session === 'post') && (
                 <span className="freshness is-ext">
                   {meta.session === 'pre' ? t.preMarketTag : t.postMarketTag}
@@ -425,7 +449,9 @@ export default function App() {
               )}
             </p>
           )}
-          {fetchState.status === 'error' && <p className="error">{fetchState.msg}</p>}
+          {fetchState.status === 'error' && (
+            <p className="error">{fetchState.isNetwork ? t.networkError : fetchState.msg}</p>
+          )}
 
           {/* Price pair: live market price (auto-filled) and the holder's
               average cost, side by side so the strip below reads as a direct
@@ -480,10 +506,7 @@ export default function App() {
               hint lives BELOW the row (full width) so both fields stay the
               same height and the row's flex-end alignment holds — putting
               the hint inside the fee field made it taller and visibly
-              knocked 股數 out of line. On US the fee field is omitted. */}
-          {/* 股數（台股含 張/零股 單位切換）與手續費倍率同一列，欄寬與上方
-              現價／成本均價對齊；單位切換與輸入框等高並排。美股無「張」與手續費，
-              故只留股數欄。 */}
+              knocked the shares field out of line. On US the fee field is omitted. */}
           <div className="row">
             <label className="field">
               <span className="label">{t.shares}</span>
@@ -548,7 +571,7 @@ export default function App() {
             <span className="field-hint row-hint">{t.feeMinNote}</span>
           )}
 
-          {/* Goal: one unified 目標報酬 field; the % suffix / currency prefix
+          {/* Goal: one unified target-return field; the % suffix / currency prefix
               tells the modes apart, and the percent|dollar switch sits inline
               on the same row instead of taking a whole row of its own. */}
           <div className="row">
@@ -630,39 +653,49 @@ export default function App() {
               </dl>
 
               {/* TW fee breakdown — only when twFees() returns a result.
-                  Commission + 證交稅 as deductions, then the net figures. */}
+                  Commission + securities tax as deductions, then the net
+                  figures in a tinted box that mirrors the unrealized strip. */}
               {fees && (
-                <dl className="fees">
-                  <div className="fee-row">
-                    <dt>{t.buyFee}</dt>
-                    <dd className="mono neg">-{currency} {fmt(fees.buyFee, md)}</dd>
+                <>
+                  <dl className="fees">
+                    <div className="fee-row">
+                      <dt>{t.buyFee}</dt>
+                      <dd className="mono neg">-{currency} {fmt(fees.buyFee, md)}</dd>
+                    </div>
+                    <div className="fee-row">
+                      <dt>{t.sellFee}</dt>
+                      <dd className="mono neg">-{currency} {fmt(fees.sellFee, md)}</dd>
+                    </div>
+                    <div className="fee-row">
+                      <dt>
+                        {t.secTax}
+                        {isETF && <span className="etf-tag">{t.etfTag}</span>}
+                      </dt>
+                      <dd className="mono neg">-{currency} {fmt(fees.tax, md)}</dd>
+                    </div>
+                  </dl>
+                  {/* Net profit/return on a green/red tint, like the unrealized
+                      strip — the headline takeaway of the fee breakdown, with
+                      the net profit enlarged so it reads first. */}
+                  <div className={`net-summary ${isNetPositive ? 'pos' : 'neg'}`}>
+                    <div className="net-row net-row-main">
+                      <span className="net-label">{t.netProfit}</span>
+                      <span className="net-val mono">
+                        {isNetPositive ? '+' : ''}{currency} {fmt(fees.netProfit, md)}
+                      </span>
+                    </div>
+                    <div className="net-row net-row-sub">
+                      <span className="net-label">{t.netReturn}</span>
+                      <span className="net-val mono">
+                        {isNetPositive ? '+' : ''}{fmt(fees.netReturnPct)}%
+                      </span>
+                    </div>
                   </div>
-                  <div className="fee-row">
-                    <dt>{t.sellFee}</dt>
-                    <dd className="mono neg">-{currency} {fmt(fees.sellFee, md)}</dd>
-                  </div>
-                  <div className="fee-row">
-                    <dt>
-                      {t.secTax}
-                      {isETF && <span className="etf-tag">{t.etfTag}</span>}
-                    </dt>
-                    <dd className="mono neg">-{currency} {fmt(fees.tax, md)}</dd>
-                  </div>
-                  <div className="fee-row net">
-                    <dt>{t.netProfit}</dt>
-                    <dd className={`mono ${isNetPositive ? 'pos' : 'neg'}`}>
-                      {isNetPositive ? '+' : ''}{currency} {fmt(fees.netProfit, md)}
-                    </dd>
-                  </div>
-                  <div className="fee-row net">
-                    <dt>{t.netReturn}</dt>
-                    <dd className={`mono ${isNetPositive ? 'pos' : 'neg'}`}>
-                      {isNetPositive ? '+' : ''}{fmt(fees.netReturnPct)}%
-                    </dd>
-                  </div>
-                </dl>
+                </>
               )}
             </>
+          ) : priceInvalid ? (
+            <p className="error">{t.priceError}</p>
           ) : (
             <p className="muted">{t.placeholderHint}</p>
           )}
@@ -671,7 +704,7 @@ export default function App() {
             {/* TW-only fee reminder, kept at the card bottom alongside the
                 source/disclaimer so the result area above stays clean. */}
             {market === 'TW' && <span className="muted small">*{t.twFeeNote}</span>}
-            {/* Source name is market-aware: TW prices come from 證交所 (TWSE MIS),
+            {/* Source name is market-aware: TW prices come from TWSE MIS,
                 US prices from Yahoo Finance. */}
             <span className="muted small">
               {t.quoteSourceLabel} {market === 'TW' ? t.sourceTW : t.sourceUS}
@@ -692,7 +725,7 @@ export default function App() {
           feePaid={feePaidAmt}
           setFeePaid={setFeePaidAmt}
           onApply={(mult) => {
-            // Carry the reverse-calculated 折數 into the sell-target page's
+            // Carry the reverse-calculated discount into the sell-target page's
             // commission multiplier. It only applies to TW, so land there.
             setFeeDiscount(String(mult));
             setMarket('TW');

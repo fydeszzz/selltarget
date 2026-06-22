@@ -1,7 +1,9 @@
 import { asset } from '../lib/asset.js';
 
-// App version — bump this string on each release.
-const APP_VERSION = '1.0.0';
+// App version — single source of truth is package.json "version", injected at
+// build time by Vite (see vite.config.js `define`). Bump it in package.json
+// ONLY; the installer filename and this label then stay in lockstep.
+const APP_VERSION = __APP_VERSION__;
 
 // Ko-fi support link. Replace `sellsignal` with your actual Ko-fi handle
 // (the part after ko-fi.com/). 0% platform fee; global cards in, Stripe/

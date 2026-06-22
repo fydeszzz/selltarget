@@ -5,7 +5,7 @@
 //   • Works because US tickers don't trip Yahoo's 2023 crumb-auth gate.
 //
 // TW:
-//   • TWSE MIS  (https://mis.twse.com.tw/...)  → real-time price + 漲跌停
+//   • TWSE MIS  (https://mis.twse.com.tw/...)  → real-time price
 //                via corsproxy.io (MIS has no CORS of its own)
 //   • TWSE OpenAPI (https://openapi.twse.com.tw/...)  → daily stock list
 //                fetched DIRECTLY (native CORS), used only for name→code
@@ -13,7 +13,7 @@
 //                returning corsproxy-error 4xxx codes for TW queries.
 //
 // Other free TW data sources worth knowing (not currently used):
-//   • TPEX OpenAPI       https://www.tpex.org.tw/openapi/   上櫃, native CORS
+//   • TPEX OpenAPI       https://www.tpex.org.tw/openapi/   OTC, native CORS
 //   • FinMind            https://finmindtrade.com/          daily, free tier
 //   • Sinopac Shioaji    real-time tick, requires broker account
 //   • Polygon / Alpha Vantage — paid, weak TW coverage
@@ -47,9 +47,9 @@ const YF_SEARCH   = DEV ? '/api/yahoo/v1/finance/search' : 'https://query1.finan
 const TWSE_MIS    = DEV ? '/api/mis/stock/api/getStockInfo.jsp' : 'https://mis.twse.com.tw/stock/api/getStockInfo.jsp';
 const TWSE_LIST   = DEV ? '/api/twse/v1/exchangeReport/STOCK_DAY_AVG_ALL' : 'https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_AVG_ALL';
 
-// TWSE 產業類別 codes returned in the MIS `i` field. Same numeric mapping
-// works for most TPEx (上櫃) listings since the regulator unified the
-// classification a few years back. Codes are 2-digit numeric strings;
+// TWSE industry-category codes returned in the MIS `i` field. The same
+// numeric mapping works for most TPEx listings since the regulator unified
+// the classification a few years back. Codes are 2-digit numeric strings;
 // some come back without a leading zero so we pad before lookup.
 const TWSE_INDUSTRY = {
   '01': '水泥工業',          '02': '食品工業',
@@ -84,11 +84,18 @@ const electronFetch = () =>
   (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.fetchJson) || null;
 
 // Per-request timeout. A hung connection (a proxy stalls, the network drops)
-// would otherwise leave fetch() pending forever and the UI stuck on 查詢中….
+// would otherwise leave fetch() pending forever and the UI stuck on "Loading…".
 // We abort after this many ms so the next proxy — and ultimately withRetry()'s
 // auto re-query — can take over, then surface a real error instead of an
 // indefinite spinner.
 const REQUEST_TIMEOUT_MS = 5000;
+
+// Tag transport/connectivity failures (offline, timeout, every proxy down,
+// HTTP 5xx) so the UI can show a friendly, localized "check your network"
+// message instead of a raw technical string like "Failed to fetch". Data
+// errors thrown AFTER a successful response ("No quote" / "No match") stay
+// untagged and surface their own explanatory message.
+const netError = (msg) => Object.assign(new Error(msg || 'network'), { isNetwork: true });
 
 // fetch() with an AbortController timeout. Aborting actually cancels the
 // underlying request (frees the socket / proxy slot), unlike a bare Promise
@@ -98,6 +105,10 @@ async function fetchWithTimeout(target, opts = {}, ms = REQUEST_TIMEOUT_MS) {
   const timer = setTimeout(() => ac.abort(), ms);
   try {
     return await fetch(target, { ...opts, signal: ac.signal });
+  } catch (e) {
+    // Our abort (timeout) or a TypeError from an offline/blocked network —
+    // both are connectivity failures, not bad user input.
+    throw netError(e?.name === 'AbortError' ? 'timeout' : (e?.message || 'network'));
   } finally {
     clearTimeout(timer);
   }
@@ -108,7 +119,7 @@ async function fetchWithTimeout(target, opts = {}, ms = REQUEST_TIMEOUT_MS) {
 function withTimeoutRace(promise, ms = REQUEST_TIMEOUT_MS) {
   let timer;
   const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error('timeout')), ms);
+    timer = setTimeout(() => reject(netError('timeout')), ms);
   });
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
@@ -130,7 +141,7 @@ async function proxiedJson(url, { tryDirect = false } = {}) {
   // Same-origin (Vite dev proxy or production backend) — single direct fetch.
   if (url.startsWith('/')) {
     const res = await fetchWithTimeout(url, { headers: { accept: 'application/json' } });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw netError(`HTTP ${res.status}`);
     return res.json();
   }
 
@@ -164,41 +175,50 @@ async function proxiedJson(url, { tryDirect = false } = {}) {
     try {
       if (via === 'electron') return await withTimeoutRace(ef(target));
       const res = await fetchWithTimeout(target, { headers: { accept: 'application/json' } });
-      if (!res.ok) { lastErr = new Error(`HTTP ${res.status}`); continue; }
+      if (!res.ok) { lastErr = netError(`HTTP ${res.status}`); continue; }
       return await res.json();
     } catch (e) {
       lastErr = e;
     }
   }
-  throw lastErr || new Error('All endpoints failed');
+  // Every attempt (electron + each proxy) failed — this is a connectivity
+  // problem, so guarantee the network tag even if lastErr came in untagged.
+  throw lastErr?.isNetwork ? lastErr : netError(lastErr?.message || 'All endpoints failed');
 }
 
 // ─────────── TW path: TWSE MIS ───────────────────────────────────────────
 
-// Query both 上市 (tse_) and 上櫃 (otc_) in one shot; keep whichever has data.
+// TW security code shape: 4-6 digits with an OPTIONAL trailing letter. The
+// letter suffix marks leveraged / inverse ETFs — "L" = leveraged long
+// (e.g. 00631L), "R" = inverse (e.g. 00632R). Normalized to upper-case
+// because the TWSE MIS channel (tse_00631L.tw) is case-sensitive.
+const TW_CODE = /^\d{4,6}[A-Z]?$/i;
+
+// Query both listing boards (tse_ = TWSE, otc_ = TPEx) in one shot; keep
+// whichever row has data.
 async function fetchTwPrice(rawInput) {
   // Strip any exchange suffix the user may have typed/pasted, or that an
   // earlier fetch wrote back (e.g. "2330.TW", "6488.TWO"). TW stocks are
-  // addressed by their bare numeric code everywhere in this app.
+  // addressed by their bare code everywhere in this app.
   const input = String(rawInput || '').trim().replace(/\.two?$/i, '');
-  if (!input) throw new Error('輸入股票代號或名稱。');
+  if (!input) throw new Error('Enter a stock code or name.');
 
-  const code = /^\d{4,6}$/.test(input) ? input : await resolveTwName(input);
-  if (!code) throw new Error(`找不到 "${input}"。`);
+  const code = TW_CODE.test(input) ? input.toUpperCase() : await resolveTwName(input);
+  if (!code) throw new Error(`No match for "${input}".`);
 
   // Cache-buster suffix because some proxies cache aggressively.
   const url  = `${TWSE_MIS}?ex_ch=tse_${code}.tw|otc_${code}.tw&json=1&delay=0&_=${Date.now()}`;
   const json = await proxiedJson(url);
 
   if (json?.rtcode && json.rtcode !== '0000') {
-    throw new Error(`TWSE 回應 ${json.rtcode}: ${json.rtmessage || 'unknown'}`);
+    throw new Error(`TWSE error ${json.rtcode}: ${json.rtmessage || 'unknown'}`);
   }
   const rows = json?.msgArray ?? [];
   const positive = (v) => {
     const n = parseFloat(v);
     return v != null && v !== '-' && Number.isFinite(n) && n > 0;
   };
-  // MIS 五檔 (best-5 order book) come as underscore-joined strings, best
+  // MIS best-5 order book fields come as underscore-joined strings, best
   // first: `b` = bids high→low, `a` = asks low→high. The first segment is
   // the best bid / best ask.
   const firstQuote = (s) => {
@@ -209,14 +229,14 @@ async function fetchTwPrice(rawInput) {
   // Pick the most-populated row. MIS often returns two rows (one tse, one
   // otc) and only one has data. Since TWSE now withholds z/pz on the
   // public feed during trading, we also accept a row that only has a live
-  // best-bid (五檔) so a trading stock isn't mistaken for "no quote".
+  // best-bid so a trading stock isn't mistaken for "no quote".
   const row =
     rows.find((r) => positive(r.z))  ??
     rows.find((r) => positive(r.pz)) ??
     rows.find((r) => Number.isFinite(firstQuote(r.b))) ??
     rows.find((r) => positive(r.y))  ??
     rows[0];
-  if (!row) throw new Error(`${code} 查無報價 (代號是否正確？)`);
+  if (!row) throw new Error(`No quote for ${code} (is the code correct?).`);
 
   // Diagnostic: in dev, log the raw price fields so we can see whether
   // MIS is actually serving live data. Open DevTools → Console.
@@ -233,7 +253,7 @@ async function fetchTwPrice(rawInput) {
   // ask → y (yesterday).
   //
   // TWSE MIS stopped returning z/pz (last-traded price) on the free public
-  // feed during continuous trading — only the 五檔 order book stays live.
+  // feed during continuous trading — only the best-5 order book stays live.
   // So when z/pz are blank we use the BEST BID: the price you can sell into
   // right now, which is exactly what a sell-decision calculator wants.
   // Best ask is a secondary fallback (e.g. limit-up with no bids); only
@@ -251,7 +271,7 @@ async function fetchTwPrice(rawInput) {
   else if (Number.isFinite(ask)) { price = ask; priceSource = 'ask'; }
   else                           { price = y;   priceSource = 'prevClose'; }
   if (!Number.isFinite(price)) {
-    throw new Error(`${code} 暫無價格資料。`);
+    throw new Error(`No price data for ${code}.`);
   }
 
   const boardLabel = row.ex === 'otc' ? '上櫃' : '上市';
@@ -264,14 +284,14 @@ async function fetchTwPrice(rawInput) {
   const tlong    = row.tlong ? parseInt(row.tlong, 10) : null;
   const tradedAt = Number.isFinite(tlong) ? new Date(tlong) : null;
   // "Live" means the price reflects today's market, not yesterday's close.
-  // A matched price OR a live best-bid/ask from the 五檔 all count as live;
+  // A matched price OR a live best-bid/ask all count as live;
   // only the prevClose fallback is stale.
   const isLive   = priceSource !== 'prevClose';
 
   return {
-    // Plain numeric code, no exchange suffix. The 上市/上櫃 board is conveyed
-    // via `exchange` below; the suffix would otherwise be written back into
-    // the symbol field and break the next fetch / ETF detection.
+    // Plain code, no exchange suffix. The listing board (TWSE/TPEx) is
+    // conveyed via `exchange` below; the suffix would otherwise be written
+    // back into the symbol field and break the next fetch / ETF detection.
     symbol:   code,
     name:     row.n || row.nf || code,
     price,
@@ -321,10 +341,10 @@ async function loadTwStockList() {
 async function resolveTwName(query) {
   const q = String(query || '').trim();
   if (!q) return null;
-  if (/^\d{4,6}$/.test(q)) return q;           // already a numeric code
+  if (TW_CODE.test(q)) return q.toUpperCase();   // already a security code
 
-  // Reuse the ranked search so an exact "取得" by name lands on the real
-  // stock (e.g. 國巨 → 2327), never a warrant that merely shares the prefix.
+  // Reuse the ranked search so a fetch-by-name lands on the real stock
+  // (the primary listing), never a warrant that merely shares the prefix.
   const ranked = await searchTwSymbols(q, 1);
   return ranked.length ? ranked[0].code : null;
 }
@@ -332,11 +352,11 @@ async function resolveTwName(query) {
 // ─────────── Autocomplete: ranked symbol search ──────────────────────────
 //
 // Powers the type-ahead dropdown. Unlike resolveTwName (which returns one
-// code for the 取得 button), this returns MANY candidates so the user can
+// code for the fetch button), this returns MANY candidates so the user can
 // pick. Ranking has two independent axes:
 //
-//   1. KIND  — a real 股票/ETF outranks a 權證/槓桿/債券/other. This is the
-//              "優先度以股票本身為主，權證、槓桿其次" the user asked for.
+//   1. KIND  — a real stock/ETF outranks a warrant/leveraged/bond/other,
+//              so the underlying security is always offered first.
 //   2. MATCH — within the same kind, an exact name beats a name-prefix,
 //              which beats a code-prefix, which beats a mere substring.
 //
@@ -344,14 +364,14 @@ async function resolveTwName(query) {
 // when you find a listing miscategorised (e.g. a new warrant code range).
 
 /**
- * Decide whether a TW listing is a primary 股票/ETF or a secondary
- * 權證/槓桿/債券/其他. Returns 'stock' | 'secondary'.
+ * Decide whether a TW listing is a primary stock/ETF or a secondary
+ * warrant/leveraged/bond/other. Returns 'stock' | 'secondary'.
  *
  * Heuristics (a reasonable default — tune freely):
- *   • Warrant 權證 — 6-digit code NOT starting with "00" (ETFs are 00xxxx),
- *     or a name carrying a warrant marker (購/售 call/put, 牛/熊 bull/bear).
- *   • Leverage 槓桿/反向 — name contains 正2 / 反1 / 槓桿 / 反向.
- *   • Bond 債券 — name contains 債.
+ *   • Warrant — 6-digit code NOT starting with "00" (ETFs are 00xxxx),
+ *     or a name carrying a call/put or bull/bear marker.
+ *   • Leveraged / inverse — name marked as 2x-long or 1x-inverse.
+ *   • Bond — name marked as a bond.
  */
 function classifyTwSymbol(code, name) {
   const c = String(code);
@@ -367,27 +387,31 @@ export async function searchTwSymbols(query, limit = 20) {
   if (!q) return [];
 
   const list = await loadTwStockList();
-  const numeric = /^\d+$/.test(q);
+  // A code-like query is digits with an optional trailing letter (2330,
+  // 00631L, 00632R); anything else is treated as a name query. The letter
+  // suffix marks leveraged / inverse ETFs, matched case-insensitively.
+  const codeLike = /^\d+[A-Za-z]?$/.test(q);
+  const qUpper   = q.toUpperCase();
 
   const scored = [];
   for (const s of list) {
     const name = String(s.name);
     const code = String(s.code);
 
-    // MATCH rank: lower is better. Numeric queries only match codes.
+    // MATCH rank: lower is better. Code-like queries match the code column.
     let matchRank;
-    if (name === q)                       matchRank = 0;   // exact name
-    else if (name.startsWith(q))          matchRank = 1;   // name prefix
-    else if (numeric && code.startsWith(q)) matchRank = 2; // code prefix
-    else if (name.includes(q))            matchRank = 3;   // substring
-    else continue;                                         // no match
+    if (name === q)                                            matchRank = 0; // exact name
+    else if (name.startsWith(q))                               matchRank = 1; // name prefix
+    else if (codeLike && code.toUpperCase().startsWith(qUpper)) matchRank = 2; // code prefix
+    else if (name.includes(q))                                 matchRank = 3; // substring
+    else continue;                                                            // no match
 
     const kind = classifyTwSymbol(code, name);
     scored.push({ code, name, kind, kindRank: kind === 'stock' ? 0 : 1, matchRank });
   }
 
   scored.sort((a, b) =>
-    a.kindRank  - b.kindRank  ||        // 股票/ETF before 權證/槓桿
+    a.kindRank  - b.kindRank  ||        // stock/ETF before warrant/leveraged
     a.matchRank - b.matchRank ||        // exact → prefix → substring
     a.code.length - b.code.length ||    // shorter (4-digit) codes first
     a.code.localeCompare(b.code));
@@ -461,23 +485,32 @@ function classifyUsSession(result) {
   const closes = result?.indicators?.quote?.[0]?.close ?? [];
   const tp     = result?.meta?.currentTradingPeriod ?? {};
 
+  // Whether a timestamp (seconds) falls inside a trading-period window.
+  const inWindow = (w, time) => w && typeof w.start === 'number' && time >= w.start && time < w.end;
+
   // Last bar with a real (non-null) close.
   let i = ts.length - 1;
   while (i >= 0 && typeof closes[i] !== 'number') i--;
-  if (i < 0) return { session: 'regular', sessionPrice: null, tradedAt: null };
+  if (i < 0) return { session: 'regular', sessionPrice: null, tradedAt: null, isLive: false };
 
   const t   = ts[i];
   const px  = closes[i];
-  const inWindow = (w) => w && typeof w.start === 'number' && t >= w.start && t < w.end;
 
   let session = 'regular';
-  if      (inWindow(tp.post)) session = 'post';
-  else if (inWindow(tp.pre))  session = 'pre';
+  if      (inWindow(tp.post, t)) session = 'post';
+  else if (inWindow(tp.pre, t))  session = 'pre';
+
+  // A regular-session price is only genuinely "live" while the wall clock is
+  // inside today's regular window. Outside it (after the close, weekends) the
+  // regularMarketPrice is the CLOSE, not a live tick — so the UI labels it
+  // "Close" instead of "Live" to avoid implying a stale price is live.
+  const isLive = inWindow(tp.regular, Date.now() / 1000);
 
   return {
     session,
     sessionPrice: session !== 'regular' && Number.isFinite(px) ? px : null,
     tradedAt: Number.isFinite(t) ? new Date(t * 1000) : null,   // last bar time
+    isLive,
   };
 }
 
@@ -510,7 +543,7 @@ async function fetchUsPrice(rawInput) {
 
   // Display-only extended-hours price. The calculator keeps using `price`
   // (the regular session price) so the math is unchanged.
-  const { session, sessionPrice, tradedAt: barTime } = classifyUsSession(result);
+  const { session, sessionPrice, tradedAt: barTime, isLive } = classifyUsSession(result);
 
   // Timestamp shown in the status. For the regular session prefer Yahoo's
   // `regularMarketTime` (the official last-trade time); for pre/post fall
@@ -529,6 +562,7 @@ async function fetchUsPrice(rawInput) {
     tradedAt,                                           // Date | null (US Eastern)
     session,                                            // 'pre' | 'regular' | 'post'
     sessionPrice,                                       // number | null (pre/post only)
+    isLive,                                             // regular session live (vs close)
   };
 }
 

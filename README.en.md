@@ -88,6 +88,13 @@ Martin mainly does intraday day trades. For him, "speed" and "discipline" are ev
 
 ## Changelog
 
+### 2026-06-21
+- Live quotes now work for leveraged / inverse ETFs (e.g. `00631L`, `00632R`)
+
+### 2026-06-20
+- Clearer error and helper messages (connection failure, invalid price, small trade amount)
+- Refined English wording and minor text
+
 ### 2026-06-19
 - Sell price now shows a "vs current" reference percentage
 - TW share count can switch between lots and odd-lots
@@ -134,4 +141,4 @@ Contact: Email (mailto:fydeszzz@gmail.com)
 ---
 
 ## 📅 Last Updated
-June 19, 2026
+June 21, 2026

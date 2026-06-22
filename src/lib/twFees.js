@@ -1,24 +1,24 @@
 // ─────────────────────────────────────────────────────────────────────────────
-//  台股買賣成本 (TW commission + securities-transaction-tax) — YOU WRITE THE CORE.
+//  TW trading cost: broker commission + securities-transaction-tax.
 //
 //  Models one round-trip: BUY at currentPrice, SELL at targetPrice.
 //  Returns the fees, the tax, and the profit AFTER all of them are paid.
 //
-//  Taiwan rules (the spec you gave):
-//    • 手續費 (broker commission)
-//        - 成交金額 × 0.1425%   (COMMISSION_RATE)
+//  Taiwan rules:
+//    • Broker commission
+//        - trade amount × 0.1425%   (COMMISSION_RATE)
 //        - charged on BOTH the buy leg and the sell leg
-//        - 折扣 (discount) is a multiplier 0–1; e.g. 0.6 = "6折". Blank → 1.
-//        - 最低 NT$20: if the (discounted) fee is under 20, it's still 20.
-//    • 證交稅 (securities transaction tax) — SELL leg only
-//        - 一般個股 (現股): 賣出成交金額 × 0.3%   (TAX_STOCK)
-//        - ETF:            賣出成交金額 × 0.1%   (TAX_ETF)
+//        - discount is a multiplier 0–1; e.g. 0.6 = 60% of standard. Blank → 1.
+//        - NT$20 minimum: if the (discounted) fee is under 20, it's still 20.
+//    • Securities transaction tax — SELL leg only
+//        - common stock: sell amount × 0.3%   (TAX_STOCK)
+//        - ETF:          sell amount × 0.1%   (TAX_ETF)
 //
 //  Return shape (consumed by App.jsx):
 //    {
-//      buyFee:       number,   // 手續費 on the buy leg  (>= 20)
-//      sellFee:      number,   // 手續費 on the sell leg (>= 20)
-//      tax:          number,   // 證交稅 (sell only)
+//      buyFee:       number,   // commission on the buy leg  (>= 20)
+//      sellFee:      number,   // commission on the sell leg (>= 20)
+//      tax:          number,   // securities transaction tax (sell only)
 //      netProfit:    number,   // totalRevenue - totalCost - buyFee - sellFee - tax
 //      netReturnPct: number,   // netProfit / (totalCost + buyFee) * 100
 //    }
@@ -29,7 +29,7 @@
 
 export const COMMISSION_RATE = 0.001425; // 0.1425%
 export const COMMISSION_MIN  = 20;        // NT$20 floor, per leg
-export const TAX_STOCK       = 0.003;     // 0.3%  一般個股
+export const TAX_STOCK       = 0.003;     // 0.3%  common stock
 export const TAX_ETF         = 0.001;     // 0.1%  ETF
 
 // Taiwan ETFs are the only listings whose code starts with "00" (0050, 0056,
@@ -49,7 +49,7 @@ export function twFees({ totalCost, totalRevenue, discount = 1, isETF = false })
   const d = Number.isFinite(discount) && discount > 0 ? discount : 1;
 
   // 2. Commission on each leg. The NT$20 minimum applies AFTER the discount
-  //    (it floors what's actually charged). Fees/tax 無條件捨去 to whole NT$,
+  //    (it floors what's actually charged). Fees/tax are floored to whole NT$,
   //    matching how most TW brokers bill.
   const commission = (amount) =>
     Math.max(COMMISSION_MIN, Math.floor(amount * COMMISSION_RATE * d));
@@ -70,7 +70,12 @@ export function twFees({ totalCost, totalRevenue, discount = 1, isETF = false })
 // ─── tiny self-test you can run with `node src/lib/twFees.js` ───
 // Prints PASS/FAIL once the function above is implemented (assumes Math.floor
 // rounding — adjust the expected numbers if you choose a different rule).
-if (typeof process !== 'undefined' && import.meta.url === `file://${process.argv?.[1]}`) {
+// IIFE builds a file URL that matches import.meta.url on Windows and POSIX
+// alike (the old `file://${argv}` form only matched POSIX paths).
+if (typeof process !== 'undefined' && import.meta.url === (() => {
+  const p = (process.argv?.[1] || '').replace(/\\/g, '/');
+  return p.startsWith('/') ? `file://${p}` : `file:///${p}`;
+})()) {
   const approx = (a, b) => Number.isFinite(a) && Math.abs(a - b) <= 1;
   const r = twFees({ totalCost: 1_000_000, totalRevenue: 1_100_000 });
   if (!r) {

@@ -161,7 +161,7 @@ html.is-scrolling::-webkit-scrollbar-thumb,
     height: 874px;
     /* Pin a definite width so the phone frame is identical on every view.
        Without this, #root shrinks to its content's intrinsic width and a
-       narrower page (e.g. 手續費折數) would visibly縮水 vs the calculator. */
+       narrower page (e.g. the fee-discount page) would visibly shrink vs the calculator. */
     width: var(--phone-w);
     border-radius: 56px;
     border: 1px solid var(--hairline);
@@ -293,9 +293,9 @@ html.is-scrolling::-webkit-scrollbar-thumb,
 }
 .panel.output { animation-delay: 80ms; }
 
-/* ── TW-only: nudge the whole calc stack down so the 台股/美股 toggle clears
-   the notch. The TW view is the tallest (adds 漲跌停 + 手續費 rows), so it
-   top-aligns and the toggle ends up under the 瀏海. We offset it down and
+/* ── TW-only: nudge the whole calc stack down so the market toggle clears
+   the notch. The TW view is the tallest (adds the fee rows), so it
+   top-aligns and the toggle ends up under the notch. We offset it down and
    reclaim the space by tightening the form's internal gaps — US is untouched
    because it never matches [data-market="TW"]. */
 .grid[data-market="TW"] {
@@ -379,7 +379,7 @@ html.is-scrolling::-webkit-scrollbar-thumb,
 }
 .field.grow { flex: 2 1 0; }   /* grow field gets 2× the share */
 
-/* App section headings (現價, 股數, 目標報酬率, ...) — 14 px bold */
+/* App section headings (current price, shares, target return, ...) — 14 px bold */
 .label {
   font-size: 14px;
   font-weight: 700;
@@ -545,7 +545,7 @@ html.is-scrolling::-webkit-scrollbar-thumb,
   color: var(--text-muted);
   background: rgba(255, 255, 255, 0.04);
 }
-/* US extended-hours (盤前/盤後) chip — purple accent to read as "off-session". */
+/* US extended-hours (pre/post-market) chip — purple accent to read as "off-session". */
 .freshness.is-ext {
   color: var(--accent);
   background: var(--accent-soft);
@@ -581,7 +581,7 @@ html.is-scrolling::-webkit-scrollbar-thumb,
    slack, so the output no longer stretches to fill — leftover space lives
    AROUND the centered group, not as a void inside this card. */
 .output { flex: 0 0 auto; gap: 9px; }
-/* Single row: "目標賣出點" on the left, the sell price on the right. */
+/* Single row: the "sell target" label on the left, the sell price on the right. */
 .output-head {
   display: flex;
   justify-content: space-between;
@@ -600,7 +600,7 @@ html.is-scrolling::-webkit-scrollbar-thumb,
    These classes are what the JSX actually renders now. Edit the font-size
    values here to resize each piece. */
 
-/* Header row: label left, *備註 note right. No dashed divider (price sits in
+/* Header row: label left, *note on the right. No dashed divider (price sits in
    its own gray box below). */
 .sell-head {
   border-bottom: none;
@@ -692,16 +692,16 @@ Full-width gray rounded box for the sell price (matches the input fields). */
 .stats dd.pos { color: var(--pos); }
 .stats dd.neg { color: var(--neg); }
 
-/* ── 手續費折數頁 only (scoped via .fees-page on its <main>) ──────────────
+/* ── Fee-discount page only (scoped via .fees-page on its <main>) ──────────────
    Bigger stat label + value than the calculator's shared defaults, and the
-   折數 nudged left off the right edge. US/calc views are unaffected. */
-.fees-page .stats dt { font-size: 12px; }   /* ← 實際費率 / 原始手續費 label */
+   discount nudged left off the right edge. US/calc views are unaffected. */
+.fees-page .stats dt { font-size: 12px; }   /* ← effective-rate / base-commission label */
 .fees-page .stats dd { font-size: 18px; }   /* ← 0.0566% / TWD 193.96 value */
-/* 折數 (4.0 折): pull in from the right edge so it isn't flush to the border. */
+/* discount (e.g. 4.0): pull in from the right edge so it isn't flush to the border. */
 .fees-page .output-head .hero { margin-right: 8px; }   /* ← increase to move further left */
 
 /* =============================================================
-   TW fee breakdown (commission + 證交稅 + net)
+   TW fee breakdown (commission + securities tax + net)
    ============================================================= */
 .fees {
   margin: 0;
@@ -738,11 +738,39 @@ Full-width gray rounded box for the sell price (matches the input fields). */
 }
 .fee-row dd.pos { color: var(--pos); }
 .fee-row dd.neg { color: var(--neg); }
-/* Net rows sit below a divider and read a touch larger/brighter. */
-.fee-row.net { border-top: 1px dashed var(--hairline-2); }
-.fee-row.net + .fee-row.net { border-top: 0; padding-top: 0; }
-.fee-row.net dt { color: var(--text); font-weight: 700; }
-.fee-row.net dd { font-size: 13px; font-weight: 700; }
+/* Net summary: same tinted treatment as the unrealized strip, so the final
+   net profit/return reads as the headline takeaway of the fee breakdown. The
+   net profit (main row) is enlarged so it stands out. */
+.net-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 13px;
+  border-radius: var(--radius);
+  border: 1px solid var(--hairline);
+  animation: unrealized-in 0.22s ease;
+}
+.net-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.net-label { font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: var(--text-muted); }
+.net-val   { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.net-row-main .net-label { color: var(--text); font-weight: 700; }
+.net-row-main .net-val   { font-size: 16px; font-weight: 800; }
+.net-row-sub  .net-val   { font-size: 12px; font-weight: 700; }
+.net-summary.pos {
+  background: rgba(74, 222, 128, 0.10);
+  border-color: rgba(74, 222, 128, 0.30);
+}
+.net-summary.neg {
+  background: rgba(248, 113, 113, 0.10);
+  border-color: rgba(248, 113, 113, 0.30);
+}
+.net-summary.pos .net-val { color: var(--pos); }
+.net-summary.neg .net-val { color: var(--neg); }
 
 .etf-tag {
   padding: 1px 7px;
@@ -754,7 +782,7 @@ Full-width gray rounded box for the sell price (matches the input fields). */
   border-radius: var(--radius-pill);
 }
 
-/* Inline muted note next to a field label (e.g. "選填") + sub-input hint */
+/* Inline muted note next to a field label (e.g. "optional") + sub-input hint */
 .label-note { font-weight: 500; color: var(--text-faint); }
 .field-hint { font-size: 10px; color: var(--text-muted); line-height: 1.5; }
 /* Hint that follows a .row (full width, hugging the inputs above). Keeping
@@ -768,14 +796,15 @@ Full-width gray rounded box for the sell price (matches the input fields). */
    for column layouts and would pin it to the row's top. */
 .goal-modes { flex: 0 0 auto; align-self: flex-end; }
 
-/* 股數輸入框 + 張/零股 單位切換並排，且切換高度與輸入框一致：父層 stretch、
-   toggle align-self:stretch，並清掉 .tab 的 min-height 讓它跟著輸入框高度走。 */
+/* Shares input + lot/odd-lot unit toggle side by side, with the toggle height
+   matching the input: parent stretch, toggle align-self:stretch, and clear
+   .tab's min-height so it follows the input's height. */
 .shares-row { display: flex; gap: 8px; align-items: stretch; }
 .shares-row .input { flex: 1 1 0; }
 .shares-unit { flex: 0 0 auto; align-self: stretch; padding: 3px; }
 .shares-unit .tab { min-height: 0; padding: 4px 9px; display: flex; align-items: center; }
 
-/* "距現價 +X%" under the sell price — the live-price reference frame for the
+/* "+X% vs current" under the sell price — the live-price reference frame for the
    target, shown only when a cost basis makes the headline % measure from cost. */
 .sell-subnote {
   margin: 4px 0 0;
@@ -785,11 +814,11 @@ Full-width gray rounded box for the sell price (matches the input fields). */
   font-variant-numeric: tabular-nums;
 }
 
-/* "套用到賣點試算" button on the fee-discount page. */
+/* "Apply to sell-target" button on the fee-discount page. */
 .apply-btn { align-self: flex-start; margin-top: 6px; }
 
 /* ── Unrealized P&L strip (current price vs average cost) ─────────────────
-   Sits directly under the 現價 | 成本均價 pair so it reads as a comparison
+   Sits directly under the current-price | average-cost pair so it reads as a comparison
    of the two. Tints reuse the limit-up/down palette: green = gain, red =
    loss, matching the results panel (not the TW red-up limit convention). */
 .unrealized {
@@ -836,7 +865,7 @@ Full-width gray rounded box for the sell price (matches the input fields). */
 }
 
 .muted { color: var(--text-muted); }
-.small { font-size: 10px; line-height: 1.4; }   /* matches .field-hint (成交金額…) */
+.small { font-size: 10px; line-height: 1.4; }   /* matches .field-hint (trade amount…) */
 
 /* =============================================================
    Page heading (Fee-discount / Settings views)
@@ -862,7 +891,7 @@ Full-width gray rounded box for the sell price (matches the input fields). */
 .page-desc  { margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
 .settings-lang { align-self: flex-start; }
 
-/* Support / sponsor button (Settings → 贊助). Anchor styled as the app's
+/* Support / sponsor button (Settings → Sponsor). Anchor styled as the app's
    primary pill. Sized to match the language / appearance toggles above
    (same padding, font-size, min-height) so the settings controls read as
    one consistent family. */
@@ -891,10 +920,10 @@ Full-width gray rounded box for the sell price (matches the input fields). */
   display: block;
 }
 
-/* --- Settings page: content-sized & vertically centered (matches 手續費) ---
+/* --- Settings page: content-sized & vertically centered (matches fee page) ---
    No `.fill` class, so the panel hugs its content and the grid's
    justify-content:center floats it as a centered group. A roomier gap keeps
-   語言 / 關於 / disclaimer from feeling cramped. */
+   language / about / disclaimer from feeling cramped. */
 .panel.settings { gap: 20px; }
 /* Logo relocated from the masthead into the About block. */
 .about-logo {

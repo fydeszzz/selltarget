@@ -8,10 +8,12 @@ export default function FeeDiscountPage({ t, lang, amount, setAmount, feePaid, s
     () => feeDiscount({ amount: parseFloat(amount), feePaid: parseFloat(feePaid) }),
     [amount, feePaid],
   );
-  // A valid reverse-calc vs. the explicit "overpaid" mistake vs. blank input.
-  // Kept apart so the page can explain the mistake instead of silently blanking.
-  const ok       = result && !result.error;
+  // A valid reverse-calc vs. the "too small" floor case vs. the explicit
+  // "overpaid" mistake vs. blank input. Kept apart so the page can explain
+  // each case instead of silently blanking or inventing a meaningless discount.
+  const ok       = result && !result.error && !result.tooSmall;
   const overpaid = result?.error === 'overpaid';
+  const tooSmall = !!result?.tooSmall;
 
   return (
     <main className="grid fees-page">
@@ -82,8 +84,7 @@ export default function FeeDiscountPage({ t, lang, amount, setAmount, feePaid, s
                 <dd className="mono">TWD {fmt(result.baseFee)}</dd>
               </div>
             </dl>
-            {result.minApplied && <p className="output-note">{t.feeDiscMinNote}</p>}
-            {/* Carry the reverse-calculated 折數 over to the sell-target page's
+            {/* Carry the reverse-calculated discount over to the sell-target page's
                 commission multiplier (2-dp, matching that field's step). */}
             <button
               className="btn apply-btn"
@@ -92,6 +93,8 @@ export default function FeeDiscountPage({ t, lang, amount, setAmount, feePaid, s
               {t.feeDiscApply}
             </button>
           </>
+        ) : tooSmall ? (
+          <p className="output-note">{t.feeDiscMinNote}</p>
         ) : overpaid ? (
           <p className="error">{t.feeDiscOverpaid}</p>
         ) : (

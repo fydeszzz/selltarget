@@ -9,7 +9,7 @@
 //    calculate({ currentPrice: 415, amount: 10, mode: 'percent', targetValue:  10 })
 //      → targetPrice = 456.5     (10 % above 415)
 //    calculate({ currentPrice: 415, amount: 10, mode: 'dollar',  targetValue: 100 })
-//      → targetPrice = 416       (need $100 more total → +$10 per share)
+//      → targetPrice = 425       (need $100 more total → +$10 per share)
 //
 //  Formulas (basis = costBasis when supplied, else currentPrice):
 //    percent mode → targetPrice = basis * (1 + targetValue / 100)
@@ -65,11 +65,17 @@ export function calculate({ currentPrice, amount, mode, targetValue, costBasis }
 
 // ─── tiny self-test you can run with `node src/lib/calculate.js` ───
 // (Once you've implemented the function, this will print "OK" twice.)
-// The `typeof` guard is REQUIRED: in the browser `process` is undeclared,
-// and bare reads of an undeclared identifier throw ReferenceError even with `?.`.
-if (typeof process !== 'undefined' && import.meta.url === `file://${process.argv?.[1]}`) {
+// The `typeof` guard is REQUIRED: in the browser `process` is undeclared, and
+// bare reads of an undeclared identifier throw ReferenceError even with `?.`.
+// The IIFE (only invoked once `process` is known to exist) builds a file URL
+// that matches import.meta.url on BOTH Windows (C:\… → file:///C:/…) and
+// POSIX (/… → file:///…); the old `file://${argv}` form only matched POSIX.
+if (typeof process !== 'undefined' && import.meta.url === (() => {
+  const p = (process.argv?.[1] || '').replace(/\\/g, '/');
+  return p.startsWith('/') ? `file://${p}` : `file:///${p}`;
+})()) {
   const a = calculate({ currentPrice: 415, amount: 10, mode: 'percent', targetValue: 10 });
   const b = calculate({ currentPrice: 415, amount: 10, mode: 'dollar', targetValue: 100 });
   console.log(Math.abs(a.targetPrice - 456.5) < 1e-9 ? 'OK percent' : 'FAIL percent', a);
-  console.log(Math.abs(b.targetPrice - 416) < 1e-9 ? 'OK dollar' : 'FAIL dollar', b);
+  console.log(Math.abs(b.targetPrice - 425) < 1e-9 ? 'OK dollar' : 'FAIL dollar', b);
 }

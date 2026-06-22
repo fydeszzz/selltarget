@@ -1,5 +1,14 @@
+import { readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+
+// Single source of truth for the app version: package.json "version".
+// Injected into the renderer as __APP_VERSION__ (see SettingsPage.jsx) so the
+// number shown in-app can never drift from the one electron-builder stamps on
+// the installer. Bump the version in package.json ONLY.
+const { version: APP_VERSION } = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf8'),
+);
 
 // Dev-time API proxies. These route same-origin paths (/api/mis, /api/twse,
 // /api/yahoo) to the actual upstream services with the right Referer/Host
@@ -23,6 +32,9 @@ export default defineConfig({
   // file:// protocol (absolute "/assets/..." would 404 there). Harmless
   // for a normal web deploy served from the domain root.
   base: './',
+  define: {
+    __APP_VERSION__: JSON.stringify(APP_VERSION),
+  },
   plugins: [react()],
   server: {
     port: 5173,
