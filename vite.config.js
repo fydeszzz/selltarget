@@ -1,6 +1,12 @@
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+
+// Multi-page build: the original phone-style app (index.html, also packaged by
+// Electron) and the web build (web.html). Listing both as Rollup inputs makes
+// `vite build` emit both pages; the Electron build still loads only index.html.
+const r = (p) => fileURLToPath(new URL(p, import.meta.url));
 
 // Single source of truth for the app version: package.json "version".
 // Injected into the renderer as __APP_VERSION__ (see SettingsPage.jsx) so the
@@ -34,6 +40,11 @@ export default defineConfig({
   base: './',
   define: {
     __APP_VERSION__: JSON.stringify(APP_VERSION),
+  },
+  build: {
+    rollupOptions: {
+      input: { main: r('./index.html'), web: r('./web.html') },
+    },
   },
   plugins: [react()],
   server: {

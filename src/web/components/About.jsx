@@ -1,0 +1,71 @@
+import { asset } from '../../lib/asset.js';
+
+// Web About / Settings page. Language and theme also live in the top bar, but
+// the full set of preferences + about/support/version info is kept here so the
+// web build has feature parity with the mobile Settings tab.
+const APP_VERSION = __APP_VERSION__;
+const SUPPORT_URL = 'https://ko-fi.com/honeybagel86887';
+const GITHUB_URL  = 'https://github.com/fydeszzz/sellsignal';
+
+export default function About({ lang, setLang, theme, setTheme, t }) {
+  return (
+    <>
+      <div className="page-head-web">
+        <span className="page-eyebrow">{t.nav.settings}</span>
+        <h1 className="page-h1">{t.settingsTitle}</h1>
+      </div>
+
+      <div className="workspace narrow">
+        <section className="card">
+          <div className="about-grid">
+            <div className="about-block">
+              <span className="label">{t.settingsLang}</span>
+              <div className="seg" role="group" aria-label={t.languageLabel}>
+                <button className={lang === 'zh' ? 'on' : ''} aria-pressed={lang === 'zh'} onClick={() => setLang('zh')}>中文</button>
+                <button className={lang === 'en' ? 'on' : ''} aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
+              </div>
+            </div>
+
+            <div className="about-block">
+              <span className="label">{t.settingsTheme}</span>
+              <div className="seg" role="group" aria-label={t.settingsTheme}>
+                <button className={theme === 'dark' ? 'on' : ''} aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')}>{t.themeDark}</button>
+                <button className={theme === 'light' ? 'on' : ''} aria-pressed={theme === 'light'} onClick={() => setTheme('light')}>{t.themeLight}</button>
+              </div>
+            </div>
+
+            <div className="about-block">
+              <span className="label">{t.settingsAbout}</span>
+              <img className="about-logo" src={asset('logo.png')} alt="Sell Signal" />
+              <p className="about-text">{t.settingsAboutText}</p>
+            </div>
+
+            <div className="about-block">
+              <span className="label">{t.settingsSupport}</span>
+              <a className="support-btn" href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
+                <img className="support-icon" src={asset('cathand.png')} alt="" aria-hidden />
+                {t.supportButton}
+              </a>
+              <p className="about-text">{t.supportNote}</p>
+            </div>
+
+            <div className="about-block">
+              <span className="label">{t.settingsBugReport}</span>
+              <a className="support-btn ghost" href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
+                <svg className="support-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+                </svg>
+                {t.githubButton}
+              </a>
+            </div>
+
+            <div className="about-block">
+              <span className="label">{t.settingsVersion}</span>
+              <p className="version">{APP_VERSION}</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </>
+  );
+}
