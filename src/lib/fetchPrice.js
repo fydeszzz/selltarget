@@ -47,15 +47,28 @@ const YF_SEARCH   = DEV ? '/api/yahoo/v1/finance/search' : 'https://query1.finan
 const TWSE_MIS    = DEV ? '/api/mis/stock/api/getStockInfo.jsp' : 'https://mis.twse.com.tw/stock/api/getStockInfo.jsp';
 const TWSE_LIST   = DEV ? '/api/twse/v1/exchangeReport/STOCK_DAY_AVG_ALL' : 'https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_AVG_ALL';
 
+// Capacitor Android/iOS app: capacitor.config.json enables the CapacitorHttp
+// plugin, which patches window.fetch/XMLHttpRequest to route through native
+// HTTP (OkHttp on Android). That bypasses browser CORS entirely AND lifts
+// the browser's ban on scripts setting the `Referer` header — so unlike the
+// plain web build, the native app can pass MIS's required Referer directly
+// on a normal-looking fetch() call instead of needing a server-side proxy.
+const CAPACITOR_NATIVE =
+  typeof window !== 'undefined' && !!window.Capacitor?.isNativePlatform?.();
+
 // Deployed web build: the host may ship server-side proxy rules (see
 // netlify.toml) exposing the SAME /api/* paths as the Vite dev proxy —
 // no browser CORS, and the Referer header MIS needs for live data.
 // Detected at runtime as "an http(s) page without the Electron bridge".
+// Capacitor's local WebView also serves content over an https: origin
+// (androidScheme), so it's explicitly excluded here — that case is handled
+// by CAPACITOR_NATIVE instead, which takes priority in proxiedJson().
 // proxiedJson() tries the same-origin path first and falls back to the
 // public CORS proxy chain, so the identical bundle still works on hosts
 // without proxy rules (e.g. `vite preview`, plain static hosting).
 const WEB_SAME_ORIGIN =
   !DEV &&
+  !CAPACITOR_NATIVE &&
   typeof window !== 'undefined' &&
   /^https?:$/.test(window.location.protocol) &&
   !window.electronAPI;
@@ -71,6 +84,14 @@ function sameOriginPath(url) {
     if (url.startsWith(origin)) return prefix + url.slice(origin.length);
   }
   return null;
+}
+
+// The Referer MIS needs, same value electron/main.cjs sends natively.
+// Only attached for the MIS host — other upstreams don't need it and
+// sending a Referer they don't expect is needless surface area.
+const MIS_REFERER_HEADERS = { Referer: 'https://mis.twse.com.tw/stock/fibest.jsp?stock=2330' };
+function extraHeadersFor(url) {
+  return url.includes('mis.twse.com.tw') ? MIS_REFERER_HEADERS : {};
 }
 
 // TWSE industry-category codes returned in the MIS `i` field. The same
@@ -156,6 +177,9 @@ function withTimeoutRace(promise, ms = REQUEST_TIMEOUT_MS) {
  * - In the Electron desktop app, every absolute URL goes through the main
  *   process (native network stack: no CORS, MIS Referer injected). This is
  *   the most reliable path and skips the public proxy chain entirely.
+ * - In the Capacitor Android/iOS app, CapacitorHttp patches fetch to use
+ *   native HTTP directly, so the same no-CORS/Referer-allowed guarantee
+ *   holds without any bridge object — just a normal fetch() call.
  * - Same-origin URLs (starting with `/`) are fetched directly. In dev,
  *   these hit Vite's proxy and get server-side forwarding with the right
  *   headers. In a production same-origin deploy, they'd hit a backend.
@@ -176,9 +200,13 @@ async function proxiedJson(url, { tryDirect = false } = {}) {
   //   0. Deployed web build only: the same-origin /api/* path, served by the
   //      host's proxy rules (netlify.toml). Fast, no CORS, live MIS data.
   //      On hosts without the rules this 404s and the chain moves on.
-  //   1. Electron native fetch (no CORS, MIS Referer injected) — the reliable
+  //   1. Capacitor native app only: direct fetch with the MIS Referer header
+  //      attached. CapacitorHttp routes this through native HTTP, so there's
+  //      no CORS and no forbidden-header restriction on Referer — no proxy
+  //      needed at all, same reliability class as the Electron path below.
+  //   2. Electron native fetch (no CORS, MIS Referer injected) — the reliable
   //      path for the desktop app.
-  //   2. A SECOND native try after a short pause. TWSE MIS occasionally resets
+  //   3. A SECOND native try after a short pause. TWSE MIS occasionally resets
   //      the connection mid-flight (net::ERR_CONNECTION_RESET); the native
   //      stack recovers on a quick retry far more reliably than the public
   //      proxies do. This matters most in the packaged app, which loads over
@@ -186,7 +214,7 @@ async function proxiedJson(url, { tryDirect = false } = {}) {
   //      reject that (corsproxy 403, allorigins needs a real Origin). So the
   //      native retry, not the proxy chain, is what actually heals a transient
   //      reset here; doing it first also avoids stalling on a dead proxy.
-  //   3. The public CORS-proxy chain as a last resort — and the ONLY path in
+  //   4. The public CORS-proxy chain as a last resort — and the ONLY path in
   //      the browser/dev build, where `ef` is null and the chain below is
   //      identical to the original browser-only behaviour.
   const ef = electronFetch();
@@ -194,6 +222,9 @@ async function proxiedJson(url, { tryDirect = false } = {}) {
   if (WEB_SAME_ORIGIN) {
     const p = sameOriginPath(url);
     if (p) attempts.push({ via: 'fetch', target: p });
+  }
+  if (CAPACITOR_NATIVE) {
+    attempts.push({ via: 'fetch', target: url, headers: extraHeadersFor(url) });
   }
   if (ef && /^https?:/i.test(url)) {
     attempts.push({ via: 'electron', target: url });
@@ -203,11 +234,11 @@ async function proxiedJson(url, { tryDirect = false } = {}) {
   for (const proxy of PROXIES) attempts.push({ via: 'fetch', target: proxy + encodeURIComponent(url) });
 
   let lastErr;
-  for (const { via, target, pauseBefore } of attempts) {
+  for (const { via, target, pauseBefore, headers } of attempts) {
     if (pauseBefore) await new Promise((r) => setTimeout(r, pauseBefore));
     try {
       if (via === 'electron') return await withTimeoutRace(ef(target));
-      const res = await fetchWithTimeout(target, { headers: { accept: 'application/json' } });
+      const res = await fetchWithTimeout(target, { headers: { accept: 'application/json', ...headers } });
       if (!res.ok) { lastErr = netError(`HTTP ${res.status}`); continue; }
       return await res.json();
     } catch (e) {
