@@ -1,4 +1,4 @@
-# Netlify deploy config for the SellSignal web build.
+# Netlify deploy config for the SellTarget web build.
 #
 # Build: `vite build` emits BOTH pages (index.html = phone-style app that
 # Electron packages, web.html = the web version). The site root is rewritten

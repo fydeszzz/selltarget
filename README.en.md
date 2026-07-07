@@ -4,7 +4,7 @@
 
 </div>
 
-# Sell Signal — Know your exit before you enter.
+# Sell Target — Know your exit before you enter.
 ![logo](public/logo.png)
 ~ Pick a stock · Set a goal · See the price you should sell at ~
 
@@ -71,6 +71,14 @@ On launch, the **賣點試算 (Sell-Target)** tab opens by default:
 
 ## Changelog
 
+### 2026-07-07
+- Renamed the project to SellTarget (brand, app name, Android package ID, and desktop icon all updated)
+- Replaced the logo with a new design
+- Updated the GitHub link to `github.com/fydeszzz/selltarget`
+- Regenerated the Android release signing keystore under the selltarget name
+- Rebuilt the desktop installers (SellTarget Setup / portable)
+- Doubled the Settings-page logo size and unified the font size of section labels like "target sell price" and "your discount"
+
 ### 2026-06-28
 - Added a web version prototype
 - Docs correction: removed unused i18n keys, fixed accessibility label semantics.
@@ -130,4 +138,4 @@ Contact: [fydeszzz@gmail.com](mailto:fydeszzz@gmail.com)
 ---
 
 ## 📅 Last Updated
-June 28, 2026
+July 7, 2026

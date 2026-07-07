@@ -1,4 +1,4 @@
-// Electron main process for the SellSignal desktop app.
+// Electron main process for the SellTarget desktop app.
 //
 // Loads the Vite-built static frontend (dist/) over file:// and exposes a
 // single IPC channel ("fetch-json") that performs HTTP requests through
@@ -80,7 +80,7 @@ function createWindow() {
     height: 900,
     minWidth: 360,
     minHeight: 640,
-    title: 'SellSignal',
+    title: 'SellTarget',
     backgroundColor: '#0A0A0B',
     icon: path.join(__dirname, '..', 'icon.png'),
     autoHideMenuBar: true,

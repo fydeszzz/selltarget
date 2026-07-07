@@ -1,6 +1,6 @@
 {
-  "appId": "com.ricyhsu.sellsignal",
-  "appName": "SellSignal",
+  "appId": "com.ricyhsu.selltarget",
+  "appName": "SellTarget",
   "webDir": "dist",
   "plugins": {
     "CapacitorHttp": {

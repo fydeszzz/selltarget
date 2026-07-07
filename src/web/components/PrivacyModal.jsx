@@ -1,6 +1,6 @@
 import LegalModal from './LegalModal.jsx';
 
-// Bilingual privacy notice, tailored to what SellSignal actually does: it has no
+// Bilingual privacy notice, tailored to what SellTarget actually does: it has no
 // accounts and no server of its own — preferences live in the browser's
 // localStorage, and the only outbound data is the stock symbol you look up, sent
 // to third-party quote providers (TWSE / Yahoo Finance) via public CORS proxies.
@@ -10,7 +10,7 @@ const POLICY = {
   en: {
     title: 'Privacy Notice',
     updated: 'Last updated: June 28, 2026',
-    intro: 'SellSignal is an educational stock sell-target and Taiwan fee calculator. It has no user accounts and no backend of its own. This notice explains what limited data is involved when you use the web app. By using SellSignal, you agree to the practices described below.',
+    intro: 'SellTarget is an educational stock sell-target and Taiwan fee calculator. It has no user accounts and no backend of its own. This notice explains what limited data is involved when you use the web app. By using SellTarget, you agree to the practices described below.',
     sections: [
       {
         title: '1. Information We Do Not Collect',
@@ -42,7 +42,7 @@ const POLICY = {
       },
       {
         title: '5. Third-Party Links and Services',
-        body: 'SellSignal relies on or links to external services governed by their own privacy policies, including the quote providers and CORS proxies above, the hosting/CDN that serves the site, and the optional GitHub and Ko-fi support links. We are not responsible for the practices of those third parties.',
+        body: 'SellTarget relies on or links to external services governed by their own privacy policies, including the quote providers and CORS proxies above, the hosting/CDN that serves the site, and the optional GitHub and Ko-fi support links. We are not responsible for the practices of those third parties.',
       },
       {
         title: '6. Data Security',
@@ -50,11 +50,11 @@ const POLICY = {
       },
       {
         title: '7. Children’s Privacy',
-        body: 'SellSignal is not directed to children under 13, and we do not knowingly collect any information from children.',
+        body: 'SellTarget is not directed to children under 13, and we do not knowingly collect any information from children.',
       },
       {
         title: '8. Not Investment Advice',
-        body: 'SellSignal is provided for educational and estimation purposes only. Prices and calculations may be delayed or inaccurate and must not be relied upon as financial or investment advice.',
+        body: 'SellTarget is provided for educational and estimation purposes only. Prices and calculations may be delayed or inaccurate and must not be relied upon as financial or investment advice.',
       },
       {
         title: '9. Changes to This Notice',
@@ -70,7 +70,7 @@ const POLICY = {
   zh: {
     title: '隱私權聲明',
     updated: '最後更新：2026 年 6 月 28 日',
-    intro: 'SellSignal 是一款教學用途的股票賣點與台股手續費計算工具，沒有使用者帳號，也沒有自己的後端伺服器。本聲明說明您在使用網頁版時所涉及的少量資料。使用本工具即表示您同意以下說明的做法。',
+    intro: 'SellTarget 是一款教學用途的股票賣點與台股手續費計算工具，沒有使用者帳號，也沒有自己的後端伺服器。本聲明說明您在使用網頁版時所涉及的少量資料。使用本工具即表示您同意以下說明的做法。',
     sections: [
       {
         title: '1. 我們不會收集的資訊',
@@ -102,7 +102,7 @@ const POLICY = {
       },
       {
         title: '5. 第三方連結與服務',
-        body: 'SellSignal 依賴或連結至受其各自隱私權政策規範的外部服務，包括上述的行情來源與 CORS Proxy、提供本網站的主機 / CDN，以及選用的 GitHub 與 Ko-fi 贊助連結。我們對這些第三方的做法不負責任。',
+        body: 'SellTarget 依賴或連結至受其各自隱私權政策規範的外部服務，包括上述的行情來源與 CORS Proxy、提供本網站的主機 / CDN，以及選用的 GitHub 與 Ko-fi 贊助連結。我們對這些第三方的做法不負責任。',
       },
       {
         title: '6. 資料安全',
@@ -110,11 +110,11 @@ const POLICY = {
       },
       {
         title: '7. 兒童隱私',
-        body: 'SellSignal 並非以 13 歲以下兒童為對象，我們不會在知情的情況下收集兒童的任何資訊。',
+        body: 'SellTarget 並非以 13 歲以下兒童為對象，我們不會在知情的情況下收集兒童的任何資訊。',
       },
       {
         title: '8. 非投資建議',
-        body: 'SellSignal 僅供教學與試算用途。價格與計算結果可能延遲或不準確，不得作為財務或投資建議依據。',
+        body: 'SellTarget 僅供教學與試算用途。價格與計算結果可能延遲或不準確，不得作為財務或投資建議依據。',
       },
       {
         title: '9. 本聲明之變更',

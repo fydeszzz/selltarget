@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">SellSignal</string>
-    <string name="title_activity_main">SellSignal</string>
-    <string name="package_name">com.ricyhsu.sellsignal</string>
-    <string name="custom_url_scheme">com.ricyhsu.sellsignal</string>
+    <string name="app_name">SellTarget</string>
+    <string name="title_activity_main">SellTarget</string>
+    <string name="package_name">com.ricyhsu.selltarget</string>
+    <string name="custom_url_scheme">com.ricyhsu.selltarget</string>
 </resources>

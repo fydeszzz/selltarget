@@ -76,7 +76,7 @@ export const translations = {
     themeDark: 'Dark',
     themeLight: 'Light',
     settingsAbout: 'About',
-    settingsAboutText: 'Sell Signal: a stock sell-target & TW fee calculator. Educational use only.',
+    settingsAboutText: 'Sell Target: a stock sell-target & TW fee calculator. Educational use only.',
     settingsBugReport: 'Bug Report',
     githubButton: 'GitHub',
     settingsVersion: 'App Version',
@@ -153,7 +153,7 @@ export const translations = {
     themeDark: '深色',
     themeLight: '淺色',
     settingsAbout: '關於',
-    settingsAboutText: 'Sell Signal：股票賣點與台股手續費計算工具，僅供教學參考，非投資建議',
+    settingsAboutText: 'Sell Target：股票賣點與台股手續費計算工具，僅供教學參考，非投資建議',
     settingsBugReport: '問題回報',
     githubButton: '作者GitHub',
     settingsVersion: 'App 版本',
@@ -168,7 +168,7 @@ export function detectLang() {
   // Default is 'zh' (this is a TW-stock-focused tool), so even non-Chinese
   // browsers with no saved preference open in Traditional Chinese.
   if (typeof localStorage !== 'undefined') {
-    const saved = localStorage.getItem('sellsignal:lang');
+    const saved = localStorage.getItem('selltarget:lang');
     if (saved && LANGUAGES.includes(saved)) return saved;
   }
   if (typeof navigator !== 'undefined' && /^en/i.test(navigator.language || '')) {
@@ -179,7 +179,7 @@ export function detectLang() {
 
 export function detectMarket(lang) {
   if (typeof localStorage !== 'undefined') {
-    const saved = localStorage.getItem('sellsignal:market');
+    const saved = localStorage.getItem('selltarget:market');
     if (saved === 'TW' || saved === 'US') return saved;
   }
   return lang === 'zh' ? 'TW' : 'US';

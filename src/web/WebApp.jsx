@@ -10,14 +10,14 @@ import FeeDiscount from './components/FeeDiscount.jsx';
 import About from './components/About.jsx';
 import Footer from './components/Footer.jsx';
 
-// Web build of Sell Signal. The calculator's behaviour is identical to the
+// Web build of Sell Target. The calculator's behaviour is identical to the
 // mobile/Electron app — it reuses the same logic modules (calculate, twFees,
 // feeDiscount, fetchPrice, i18n). Only the shell is web-native: a top nav and
 // a two-column workspace instead of a phone frame + bottom nav.
 
-const LS_LANG   = 'sellsignal:lang';
-const LS_MARKET = 'sellsignal:market';
-const LS_THEME  = 'sellsignal:theme';
+const LS_LANG   = 'selltarget:lang';
+const LS_MARKET = 'selltarget:market';
+const LS_THEME  = 'selltarget:theme';
 
 const DEFAULT_SYMBOL = { TW: '2330', US: 'TSLA' };
 

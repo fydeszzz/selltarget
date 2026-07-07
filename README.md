@@ -4,7 +4,7 @@
 
 </div>
 
-# Sell Signal — 遵守紀律，到價即賣
+# Sell Target — 遵守紀律，到價即賣
 ![logo](public/logo.png)
 ~ 選定股票 · 設定目標 · 算出該賣的價格 ~
 
@@ -71,6 +71,14 @@
 
 ## 變更紀錄
 
+### 2026-07-07
+- 專案更名為 SellTarget（品牌、App 名稱、Android package ID、桌面圖示均已更新）
+- 更換新版 Logo
+- GitHub 連結更新為 `github.com/fydeszzz/selltarget`
+- 重新產生 Android release 簽章 keystore（改用 selltarget 命名）
+- 重新打包桌面安裝檔（SellTarget Setup / portable）
+- 設定頁 Logo 放大 2 倍，並統一「目標賣出點股價」「你的折數」等小標題字級
+
 ### 2026-06-28
 - 新增網頁版原型
 - 文檔校正：移除未使用的 i18n 鍵值，修正無障礙標籤語義
@@ -130,4 +138,4 @@ Ricy Hsu
 ---
 
 ## 📅 Last Updated
-June 28, 2026
+July 7, 2026

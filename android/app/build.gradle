@@ -12,10 +12,10 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.ricyhsu.sellsignal"
+    namespace = "com.ricyhsu.selltarget"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.ricyhsu.sellsignal"
+        applicationId "com.ricyhsu.selltarget"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

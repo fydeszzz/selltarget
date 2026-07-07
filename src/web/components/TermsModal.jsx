@@ -1,14 +1,14 @@
 import LegalModal from './LegalModal.jsx';
 
 // Bilingual Terms of Use, based on a standard ToS template and tailored to
-// SellSignal (a free, account-less educational stock calculator). Rendered
+// SellTarget (a free, account-less educational stock calculator). Rendered
 // through the shared LegalModal shell.
 
 const TERMS = {
   en: {
     title: 'Terms of Use',
     updated: 'Last updated: June 29, 2026',
-    intro: 'These Terms of Use ("Terms") govern your access to and use of SellSignal (the "Service"), a free educational stock sell-target and Taiwan fee calculator. By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, please do not use the Service.',
+    intro: 'These Terms of Use ("Terms") govern your access to and use of SellTarget (the "Service"), a free educational stock sell-target and Taiwan fee calculator. By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, please do not use the Service.',
     sections: [
       {
         title: '1. Eligibility',
@@ -16,7 +16,7 @@ const TERMS = {
       },
       {
         title: '2. The Service',
-        body: 'SellSignal is provided free of charge for educational and estimation purposes. It has no user accounts and stores your preferences only in your own browser. Live quotes are retrieved from third-party market-data providers (such as the Taiwan Stock Exchange and Yahoo Finance) and may be delayed or inaccurate.',
+        body: 'SellTarget is provided free of charge for educational and estimation purposes. It has no user accounts and stores your preferences only in your own browser. Live quotes are retrieved from third-party market-data providers (such as the Taiwan Stock Exchange and Yahoo Finance) and may be delayed or inaccurate.',
       },
       {
         title: '3. No Investment Advice',
@@ -65,7 +65,7 @@ const TERMS = {
   zh: {
     title: '使用條款',
     updated: '最後更新：2026 年 6 月 29 日',
-    intro: '本使用條款（下稱「條款」）規範您對 SellSignal（下稱「本服務」，一款免費的教學用股票賣點與台股手續費計算工具）的存取與使用。當您存取或使用本服務，即表示您同意接受本條款拘束；若您不同意，請勿使用本服務。',
+    intro: '本使用條款（下稱「條款」）規範您對 SellTarget（下稱「本服務」，一款免費的教學用股票賣點與台股手續費計算工具）的存取與使用。當您存取或使用本服務，即表示您同意接受本條款拘束；若您不同意，請勿使用本服務。',
     sections: [
       {
         title: '1. 使用資格',
@@ -73,7 +73,7 @@ const TERMS = {
       },
       {
         title: '2. 服務內容',
-        body: 'SellSignal 為免費提供，僅供教學與試算之用。本服務沒有使用者帳號，僅將您的偏好設定儲存於您自己的瀏覽器中。即時報價取自第三方行情資料來源（例如臺灣證券交易所與 Yahoo Finance），可能延遲或不準確。',
+        body: 'SellTarget 為免費提供，僅供教學與試算之用。本服務沒有使用者帳號，僅將您的偏好設定儲存於您自己的瀏覽器中。即時報價取自第三方行情資料來源（例如臺灣證券交易所與 Yahoo Finance），可能延遲或不準確。',
       },
       {
         title: '3. 非投資建議',

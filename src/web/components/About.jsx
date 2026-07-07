@@ -5,7 +5,7 @@ import { asset } from '../../lib/asset.js';
 // web build has feature parity with the mobile Settings tab.
 const APP_VERSION = __APP_VERSION__;
 const SUPPORT_URL = 'https://ko-fi.com/honeybagel86887';
-const GITHUB_URL  = 'https://github.com/fydeszzz/sellsignal';
+const GITHUB_URL  = 'https://github.com/fydeszzz/selltarget';
 
 export default function About({ lang, setLang, theme, setTheme, t }) {
   return (
@@ -36,7 +36,7 @@ export default function About({ lang, setLang, theme, setTheme, t }) {
 
             <div className="about-block">
               <span className="label">{t.settingsAbout}</span>
-              <img className="about-logo" src={asset('logo.png')} alt="Sell Signal" />
+              <img className="about-logo" src={asset('logo.png')} alt="Sell Target" />
               <p className="about-text">{t.settingsAboutText}</p>
             </div>
 

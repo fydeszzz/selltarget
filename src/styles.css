@@ -591,7 +591,7 @@ html.is-scrolling::-webkit-scrollbar-thumb,
   padding-bottom: 6px;
 }
 .kicker {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text);
 }
@@ -982,9 +982,9 @@ Full-width gray rounded box for the sell price (matches the input fields). */
 /* Logo relocated from the masthead into the About block. */
 .about-logo {
   display: block;
-  height: 30px;
+  height: 72px;
   width: auto;
-  margin: 2px 0 4px;
+  margin: -10px -10px;
   object-fit: contain;
   object-position: left center;
   user-select: none;

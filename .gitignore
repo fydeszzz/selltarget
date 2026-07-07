@@ -13,8 +13,8 @@ release
 promo/
 
 # Generated desktop shortcut icon + launcher (local only)
-SellSignal.ico
-SellSignal Dev.bat
+SellTarget.ico
+SellTarget Dev.bat
 
 # Local Windows shortcut generator (hardcodes a personal path)
 make-shortcut.ps1

@@ -24,8 +24,8 @@ export default function Footer({ lang = 'en' }) {
         <span className="footer-sep" aria-hidden>|</span>
         <span className="footer-copy">
           {zh
-            ? `Copyright © ${YEAR} SellSignal，版權所有`
-            : `Copyright © ${YEAR} SellSignal. All Rights Reserved.`}
+            ? `Copyright © ${YEAR} SellTarget，版權所有`
+            : `Copyright © ${YEAR} SellTarget. All Rights Reserved.`}
         </span>
         <span className="footer-sep" aria-hidden>·</span>
         <button className="footer-link" onClick={() => setOpen('disclaimer')}>

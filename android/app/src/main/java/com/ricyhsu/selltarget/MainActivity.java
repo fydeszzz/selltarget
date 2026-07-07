@@ -1,4 +1,4 @@
-package com.ricyhsu.sellsignal;
+package com.ricyhsu.selltarget;
 
 import com.getcapacitor.BridgeActivity;
 

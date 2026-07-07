@@ -1,5 +1,5 @@
 {
-  "name": "stock-calculator",
+  "name": "sell-target",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -12,7 +12,7 @@
     "preview": "vite preview --port 5173",
     "electron": "electron .",
     "app:start": "vite build && electron .",
-    "app:build": "vite build && electron-builder --win --config.directories.output=%USERPROFILE%/Desktop/SellSignal-build"
+    "app:build": "vite build && electron-builder --win --config.directories.output=%USERPROFILE%/Desktop/SellTarget-build"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
@@ -29,8 +29,8 @@
     "vite": "^6.0.7"
   },
   "build": {
-    "appId": "com.ricyhsu.sellsignal",
-    "productName": "SellSignal",
+    "appId": "com.ricyhsu.selltarget",
+    "productName": "SellTarget",
     "directories": {
       "output": "release"
     },
@@ -52,10 +52,10 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "SellSignal"
+      "shortcutName": "SellTarget"
     },
     "portable": {
-      "artifactName": "SellSignal-portable.exe"
+      "artifactName": "SellTarget-portable.exe"
     }
   }
 }

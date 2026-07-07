@@ -8,7 +8,7 @@ const DISCLAIMER = {
   en: {
     title: 'Disclaimer',
     updated: 'Last updated: June 29, 2026',
-    intro: 'Please read the following before relying on any figure shown in SellSignal.',
+    intro: 'Please read the following before relying on any figure shown in SellTarget.',
     sections: [
       {
         title: 'Key Points',
@@ -27,7 +27,7 @@ const DISCLAIMER = {
       },
       {
         title: 'Not Investment Advice',
-        body: 'Nothing in SellSignal constitutes financial, investment, tax, or legal advice, or a recommendation to buy or sell any security. All output is for reference and learning only. You are solely responsible for your own trading and investment decisions.',
+        body: 'Nothing in SellTarget constitutes financial, investment, tax, or legal advice, or a recommendation to buy or sell any security. All output is for reference and learning only. You are solely responsible for your own trading and investment decisions.',
       },
       {
         title: 'Use at Your Own Risk',
@@ -38,7 +38,7 @@ const DISCLAIMER = {
   zh: {
     title: '免責聲明',
     updated: '最後更新：2026 年 6 月 29 日',
-    intro: '在依據 SellSignal 顯示的任何數字採取行動前，請先閱讀以下說明。',
+    intro: '在依據 SellTarget 顯示的任何數字採取行動前，請先閱讀以下說明。',
     sections: [
       {
         title: '重點摘要',
@@ -57,7 +57,7 @@ const DISCLAIMER = {
       },
       {
         title: '非投資建議',
-        body: 'SellSignal 的任何內容均不構成財務、投資、稅務或法律建議，亦非買賣任何有價證券之推薦。所有結果僅供參考與學習之用。您須自行為您的交易與投資決策負完全責任。',
+        body: 'SellTarget 的任何內容均不構成財務、投資、稅務或法律建議，亦非買賣任何有價證券之推薦。所有結果僅供參考與學習之用。您須自行為您的交易與投資決策負完全責任。',
       },
       {
         title: '使用風險自負',

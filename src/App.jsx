@@ -9,9 +9,9 @@ import FeeDiscountPage from './components/FeeDiscountPage.jsx';
 import SettingsPage from './components/SettingsPage.jsx';
 import InfoTip from './components/InfoTip.jsx';
 
-const LS_LANG   = 'sellsignal:lang';
-const LS_MARKET = 'sellsignal:market';
-const LS_THEME  = 'sellsignal:theme';
+const LS_LANG   = 'selltarget:lang';
+const LS_MARKET = 'selltarget:market';
+const LS_THEME  = 'selltarget:theme';
 
 // Flagship default symbol per market — auto-fetched on boot / market switch.
 const DEFAULT_SYMBOL = { TW: '2330', US: 'TSLA' };

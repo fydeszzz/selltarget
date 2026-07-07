@@ -5,7 +5,7 @@
 // calculator.png, settings.png) so the web build matches the app's identity.
 import { asset } from '../../lib/asset.js';
 
-const GITHUB_URL = 'https://github.com/fydeszzz/sellsignal';
+const GITHUB_URL = 'https://github.com/fydeszzz/selltarget';
 
 // Inline icons keep the bar self-contained (no extra image requests).
 const SunIcon = () => (
@@ -33,8 +33,8 @@ export default function TopNav({ view, setView, lang, setLang, theme, setTheme, 
 
   return (
     <header className="topbar">
-      <button className="brand" onClick={() => setView('calc')} aria-label="Sell Signal">
-        <img className="brand-logo" src={asset('logo.png')} alt="Sell Signal" />
+      <button className="brand" onClick={() => setView('calc')} aria-label="Sell Target">
+        <img className="brand-logo" src={asset('logo.png')} alt="Sell Target" />
       </button>
 
       <nav className="nav" aria-label={t.navLabel}>
