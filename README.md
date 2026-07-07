@@ -37,14 +37,6 @@
 - 台股即時資料來自 **TWSE MIS**（即時報價）與 **TWSE OpenAPI**（名稱→代號清單）
 - 美股即時資料來自 **Yahoo Finance** v8 chart + v1 search
 
-## 網頁版（原型）
-> 與手機／桌面版位於同一專案，共用同一套計算邏輯，僅版面與外殼不同。
-
-- 針對桌面瀏覽器重新設計：頂部導覽列＋雙欄工作區（左側輸入、右側結果），不再使用手機外框
-- 同樣支援深色／淺色主題與中英文切換
-- 頁尾加上版權資訊與中英文隱私權聲明
-- 預覽方式：執行 `npm run dev` 後開啟 `/web.html`
-
 ## 分頁
 | 分頁 | 元件 | 說明 |
 |---|---|---|
@@ -74,10 +66,7 @@
 ### 2026-07-07
 - 專案更名為 SellTarget（品牌、App 名稱、Android package ID、桌面圖示均已更新）
 - 更換新版 Logo
-- GitHub 連結更新為 `github.com/fydeszzz/selltarget`
 - 重新產生 Android release 簽章 keystore（改用 selltarget 命名）
-- 重新打包桌面安裝檔（SellTarget Setup / portable）
-- 設定頁 Logo 放大 2 倍，並統一「目標賣出點股價」「你的折數」等小標題字級
 
 ### 2026-06-28
 - 新增網頁版原型

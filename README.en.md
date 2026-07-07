@@ -37,14 +37,6 @@ On launch, the **賣點試算 (Sell-Target)** tab opens by default:
 - Live TW data via **TWSE MIS** (real-time quote) and **TWSE OpenAPI** (name→code list)
 - Live US data via **Yahoo Finance** v8 chart + v1 search
 
-## Web Version (Prototype)
-> Same project as the mobile/desktop build, sharing the exact same calculation logic; only the layout and shell differ.
-
-- Redesigned for desktop browsers: a top navigation bar plus a two-column workspace (inputs on the left, results on the right), with no phone frame
-- Same dark/light themes and English / 繁體中文 toggle
-- Footer with copyright and a bilingual (EN / 中文) privacy notice
-- Preview: run `npm run dev`, then open `/web.html`
-
 ## Tabs
 | Tab | Component | Description |
 |---|---|---|
@@ -74,10 +66,7 @@ On launch, the **賣點試算 (Sell-Target)** tab opens by default:
 ### 2026-07-07
 - Renamed the project to SellTarget (brand, app name, Android package ID, and desktop icon all updated)
 - Replaced the logo with a new design
-- Updated the GitHub link to `github.com/fydeszzz/selltarget`
 - Regenerated the Android release signing keystore under the selltarget name
-- Rebuilt the desktop installers (SellTarget Setup / portable)
-- Doubled the Settings-page logo size and unified the font size of section labels like "target sell price" and "your discount"
 
 ### 2026-06-28
 - Added a web version prototype
