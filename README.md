@@ -6,6 +6,9 @@
 
 # Sell Target — 遵守紀律，到價即賣
 ![logo](public/logo.png)
+
+🌐 https://selltarget.cc/
+
 ~ 選定股票 · 設定目標 · 算出該賣的價格 ~
 
 ## 功能特色

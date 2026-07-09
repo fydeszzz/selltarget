@@ -71,6 +71,13 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path.replace(/^\/api\/yahoo/, ''),
+        // Yahoo Finance now returns HTTP 429 for requests without a
+        // browser-like User-Agent. Forcing one here is what makes US
+        // quotes work (TW/MIS don't check UA, which is why they still did).
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        },
       },
     },
   },

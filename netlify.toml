@@ -40,9 +40,12 @@
   status = 200
   force = true
 
-# Yahoo Finance chart + search (US market).
+# Yahoo Finance chart + search (US market). Yahoo now returns HTTP 429 for
+# requests without a browser-like User-Agent, so we force one here (same idea
+# as the MIS Referer above). Without it, US quotes fail while TW still works.
 [[redirects]]
   from = "/api/yahoo/*"
   to = "https://query1.finance.yahoo.com/:splat"
   status = 200
   force = true
+  headers = { User-Agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" }

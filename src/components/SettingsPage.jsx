@@ -5,11 +5,6 @@ import { asset } from '../lib/asset.js';
 // ONLY; the installer filename and this label then stay in lockstep.
 const APP_VERSION = __APP_VERSION__;
 
-// Ko-fi support link. Replace `selltarget` with your actual Ko-fi handle
-// (the part after ko-fi.com/). 0% platform fee; global cards in, Stripe/
-// PayPal payout.
-const SUPPORT_URL = 'https://ko-fi.com/honeybagel86887';
-
 // Author's GitHub repo — used by the Bug Report button so users can open
 // issues or reach the author directly.
 const GITHUB_URL = 'https://github.com/fydeszzz/selltarget';
@@ -74,20 +69,6 @@ export default function SettingsPage({ lang, setLang, theme, setTheme, t }) {
             </svg>
             {t.githubButton}
           </a>
-        </div>
-
-        <div className="field">
-          <span className="label">{t.settingsSupport}</span>
-          <a
-            className="support-btn"
-            href={SUPPORT_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img className="support-icon" src={asset('cathand.png')} alt="" aria-hidden />
-            {t.supportButton}
-          </a>
-          <p className="page-desc">{t.supportNote}</p>
         </div>
 
         <div className="field">
