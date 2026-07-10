@@ -126,5 +126,12 @@ Contact: [fydeszzz@gmail.com](mailto:fydeszzz@gmail.com)
 
 ---
 
+## <img src="public/cathand.png" width="28" style="vertical-align:middle"> Buy Honey a can
+If this app helps you, feel free to buy a can for my cat, Honey!
+
+👉 [Buy Honey a can](https://ko-fi.com/honeybagel86887)
+
+---
+
 ## 📅 Last Updated
 July 7, 2026

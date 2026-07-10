@@ -66,6 +66,10 @@
 
 ## 變更紀錄
 
+### 2026-07-09
+- 進行 iOS 版本測試
+- 調整部分 UI
+
 ### 2026-07-07
 - 專案更名為 SellTarget（品牌、App 名稱、Android package ID、桌面圖示均已更新）
 - 更換新版 Logo
@@ -129,5 +133,12 @@ Ricy Hsu
 
 ---
 
+## <img src="public/cathand.png" width="28" style="vertical-align:middle"> 贊助貓罐
+若覺得 App 有幫助，歡迎贊助我家蜂蜜貓罐
+
+👉 [贊助貓罐](https://ko-fi.com/honeybagel86887)
+
+---
+
 ## 📅 Last Updated
-July 7, 2026
+July 9, 2026

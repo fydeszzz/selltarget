@@ -944,6 +944,9 @@ Full-width gray rounded box for the sell price (matches the input fields). */
 .page-title { margin: 12; font-size: 20px; font-weight: 700; color: var(--text); }
 .page-desc  { margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-muted); }
 .settings-lang { align-self: flex-start; }
+/* Equal-width buttons so the language (中/EN) and appearance (深色/淺色)
+   toggles render at the same overall size regardless of label length. */
+.settings-lang .lang { min-width: 64px; text-align: center; }
 
 /* Support / sponsor button (Settings → Sponsor). Anchor styled as the app's
    primary pill. Sized to match the language / appearance toggles above
