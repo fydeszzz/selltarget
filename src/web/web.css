@@ -629,6 +629,17 @@ input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .web-footer { margin: 36px -14px 0; padding: 18px 14px; }
 }
 
+/* ---------- native iPad app (html.native-pad, set by src/main.jsx) ----------
+   The Capacitor WebView draws under the status bar / home indicator
+   (viewport-fit=cover in index.html), so the sticky top bar and the page
+   bottom must consume the safe-area insets that a desktop browser never has. */
+html.native-pad .topbar {
+  padding-top: calc(14px + env(safe-area-inset-top));
+}
+html.native-pad .web-shell {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
   .freshness.is-live::before { animation: none; }

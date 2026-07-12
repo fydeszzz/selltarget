@@ -7,7 +7,7 @@ const APP_VERSION = __APP_VERSION__;
 const SUPPORT_URL = 'https://ko-fi.com/honeybagel86887';
 const GITHUB_URL  = 'https://github.com/fydeszzz/selltarget';
 
-export default function About({ lang, setLang, theme, setTheme, t }) {
+export default function About({ lang, setLang, theme, setTheme, t, hideSupport = false }) {
   return (
     <>
       <div className="page-head-web">
@@ -40,14 +40,16 @@ export default function About({ lang, setLang, theme, setTheme, t }) {
               <p className="about-text">{t.settingsAboutText}</p>
             </div>
 
-            <div className="about-block">
-              <span className="label">{t.settingsSupport}</span>
-              <a className="support-btn" href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
-                <img className="support-icon" src={asset('cathand.png')} alt="" aria-hidden />
-                {t.supportButton}
-              </a>
-              <p className="about-text">{t.supportNote}</p>
-            </div>
+            {!hideSupport && (
+              <div className="about-block">
+                <span className="label">{t.settingsSupport}</span>
+                <a className="support-btn" href={SUPPORT_URL} target="_blank" rel="noopener noreferrer">
+                  <img className="support-icon" src={asset('cathand.png')} alt="" aria-hidden />
+                  {t.supportButton}
+                </a>
+                <p className="about-text">{t.supportNote}</p>
+              </div>
+            )}
 
             <div className="about-block">
               <span className="label">{t.settingsBugReport}</span>

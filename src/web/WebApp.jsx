@@ -49,7 +49,10 @@ const fmtTradedAtUs = (date, session) => {
     : `${p.month}/${p.day}`;
 };
 
-export default function WebApp() {
+// `nativePad` is set by src/main.jsx when this layout is reused as the native
+// iPad app shell: hides web-only bits that Apple review disallows in-app
+// (the Ko-fi sponsor button — guideline 3.1.1).
+export default function WebApp({ nativePad = false }) {
   // --- preferences (persisted) ---
   const [lang, setLang] = useState(detectLang);
   const [market, setMarket] = useState(() => detectMarket(detectLang()));
@@ -480,7 +483,7 @@ export default function WebApp() {
       )}
 
       {view === 'settings' && (
-        <About lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} t={t} />
+        <About lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} t={t} hideSupport={nativePad} />
       )}
 
       <Footer lang={lang} />
