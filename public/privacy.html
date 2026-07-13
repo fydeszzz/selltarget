@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Notice · SellTarget</title>
+  <meta name="description" content="SellTarget Privacy Notice / 隱私權聲明" />
+  <link rel="icon" href="/favicon-stock.png" />
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --card: #14171c;
+      --text: #e6e7e9;
+      --muted: #9aa0a6;
+      --accent: #d4af37;
+      --link: #6ea8fe;
+      --border: #262b33;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC",
+        "Microsoft JhengHei", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 40px 22px 80px; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-bottom: 28px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand img { width: 30px; height: 30px; border-radius: 7px; }
+    .brand span { font-weight: 700; font-size: 18px; color: var(--text); }
+    .toggle {
+      display: inline-flex; border: 1px solid var(--border); border-radius: 999px;
+      overflow: hidden; background: var(--card);
+    }
+    .toggle button {
+      appearance: none; border: 0; background: transparent; color: var(--muted);
+      padding: 6px 14px; font-size: 14px; cursor: pointer; font-weight: 600;
+    }
+    .toggle button.active { background: var(--accent); color: #1a1400; }
+    h1 { font-size: 28px; margin: 0 0 6px; }
+    .updated { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
+    .intro { color: var(--text); margin: 0 0 26px; }
+    h2 { font-size: 18px; margin: 28px 0 8px; color: var(--accent); }
+    p { margin: 0 0 12px; }
+    ul { margin: 0 0 12px; padding-left: 22px; }
+    li { margin: 4px 0; }
+    a { color: var(--link); }
+    .back { display: inline-block; margin-top: 34px; color: var(--link); text-decoration: none; font-size: 14px; }
+    footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="brand" href="/">
+        <img src="/logo.png" alt="SellTarget" onerror="this.style.display='none'" />
+        <span>SellTarget</span>
+      </a>
+      <div class="toggle" role="group" aria-label="Language">
+        <button id="btn-zh" type="button">中</button>
+        <button id="btn-en" type="button">EN</button>
+      </div>
+    </div>
+    <main id="doc"></main>
+    <a class="back" id="back" href="/">← 回到首頁</a>
+    <footer id="foot"></footer>
+  </div>
+
+  <script>
+    const CONTACT_EMAIL = 'fydeszzz@gmail.com';
+
+    const DATA = {
+      en: {
+        htmlLang: 'en',
+        title: 'Privacy Notice',
+        updated: 'Last updated: June 28, 2026',
+        intro: 'SellTarget is an educational stock sell-target and Taiwan fee calculator. It has no user accounts and no backend of its own. This notice explains what limited data is involved when you use the web app. By using SellTarget, you agree to the practices described below.',
+        back: '← Back to home',
+        foot: 'Copyright © 2026 SellTarget. All Rights Reserved.',
+        sections: [
+          { title: '1. Information We Do Not Collect', body: ['We do not collect personal information. There is no sign-up, login, or profile. We do not ask for your name, email, brokerage account, holdings, or any payment information.'] },
+          { title: '2. Information Stored on Your Device', body: ['To remember your settings, the app saves a few preferences locally in your browser (localStorage):'], list: ['Language (中 / EN)', 'Appearance (dark / light)', 'Selected market (TW / US)'], after: ['This data stays on your device, is never transmitted to us, and can be cleared at any time through your browser settings.'] },
+          { title: '3. Stock Quote Requests', body: ['When you fetch a price, the stock symbol you enter is sent to third-party market-data providers to retrieve a quote:'], list: ['Taiwan Stock Exchange (TWSE) market information service', 'Yahoo Finance', 'Public CORS proxy services that relay these requests in the browser build'], after: ['These providers may log requests under their own privacy policies. We do not store your searches or build a history of what you look up.'] },
+          { title: '4. Cookies and Analytics', body: ['The app does not set advertising or tracking cookies and does not run third-party analytics. The only client-side storage used is the localStorage preferences described above.'] },
+          { title: '5. Third-Party Links and Services', body: ['SellTarget relies on or links to external services governed by their own privacy policies, including the quote providers and CORS proxies above, the hosting/CDN that serves the site, and the optional GitHub and Ko-fi support links. We are not responsible for the practices of those third parties.'] },
+          { title: '6. Data Security', body: ['We apply reasonable safeguards, but no method of electronic transmission or storage is completely secure. Quote requests to third parties travel over the public internet.'] },
+          { title: "7. Children's Privacy", body: ['SellTarget is not directed to children under 13, and we do not knowingly collect any information from children.'] },
+          { title: '8. Not Investment Advice', body: ['SellTarget is provided for educational and estimation purposes only. Prices and calculations may be delayed or inaccurate and must not be relied upon as financial or investment advice.'] },
+          { title: '9. Changes to This Notice', body: ['We may update this Privacy Notice from time to time. Changes take effect once posted here with an updated "Last updated" date.'] },
+          { title: '10. Contact', body: ['Questions about this Privacy Notice? Reach us at:'], contact: true },
+        ],
+      },
+      zh: {
+        htmlLang: 'zh-Hant',
+        title: '隱私權聲明',
+        updated: '最後更新：2026 年 6 月 28 日',
+        intro: 'SellTarget 是一款教學用途的股票賣點與台股手續費計算工具，沒有使用者帳號，也沒有自己的後端伺服器。本聲明說明您在使用網頁版時所涉及的少量資料。使用本工具即表示您同意以下說明的做法。',
+        back: '← 回到首頁',
+        foot: 'Copyright © 2026 SellTarget，版權所有',
+        sections: [
+          { title: '1. 我們不會收集的資訊', body: ['我們不會收集個人資料。本工具沒有註冊、登入或個人檔案，也不會要求您的姓名、電子郵件、證券帳戶、持股或任何付款資訊。'] },
+          { title: '2. 儲存在您裝置上的資訊', body: ['為了記住您的設定，本工具會將少量偏好儲存在您瀏覽器的本機儲存空間（localStorage）：'], list: ['語言（中 / EN）', '外觀（深色 / 淺色）', '所選市場（台股 / 美股）'], after: ['這些資料僅保存在您的裝置上，不會傳送給我們，您也可隨時透過瀏覽器設定清除。'] },
+          { title: '3. 股價查詢請求', body: ['當您查詢股價時，您輸入的股票代號會傳送至第三方行情資料來源以取得報價：'], list: ['臺灣證券交易所（TWSE）行情資訊服務', 'Yahoo Finance', '在網頁版中協助轉送這些請求的公開 CORS Proxy 服務'], after: ['這些來源可能依其各自的隱私權政策記錄請求。我們不會儲存您的查詢內容，也不會建立查詢紀錄。'] },
+          { title: '4. Cookie 與分析', body: ['本工具不會設定廣告或追蹤用 Cookie，也未使用第三方分析服務。唯一使用的用戶端儲存即為上述的 localStorage 偏好設定。'] },
+          { title: '5. 第三方連結與服務', body: ['SellTarget 依賴或連結至受其各自隱私權政策規範的外部服務，包括上述的行情來源與 CORS Proxy、提供本網站的主機 / CDN，以及選用的 GitHub 與 Ko-fi 贊助連結。我們對這些第三方的做法不負責任。'] },
+          { title: '6. 資料安全', body: ['我們採取合理的保護措施，但任何電子傳輸或儲存方式都無法保證完全安全。向第三方發出的報價請求會經由公開網際網路傳送。'] },
+          { title: '7. 兒童隱私', body: ['SellTarget 並非以 13 歲以下兒童為對象，我們不會在知情的情況下收集兒童的任何資訊。'] },
+          { title: '8. 非投資建議', body: ['SellTarget 僅供教學與試算用途。價格與計算結果可能延遲或不準確，不得作為財務或投資建議依據。'] },
+          { title: '9. 本聲明之變更', body: ['我們可能不定期更新本隱私權聲明。變更於張貼在本頁並更新「最後更新」日期後生效。'] },
+          { title: '10. 聯絡我們', body: ['對本隱私權聲明有任何疑問嗎？歡迎透過以下方式與我們聯絡：'], contact: true },
+        ],
+      },
+    };
+
+    function esc(s) {
+      return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function render(lang) {
+      const d = DATA[lang] || DATA.zh;
+      document.documentElement.lang = d.htmlLang;
+      document.title = d.title + ' · SellTarget';
+
+      let html = '';
+      html += '<h1>' + esc(d.title) + '</h1>';
+      html += '<p class="updated">' + esc(d.updated) + '</p>';
+      html += '<p class="intro">' + esc(d.intro) + '</p>';
+      for (const s of d.sections) {
+        html += '<h2>' + esc(s.title) + '</h2>';
+        if (s.body) for (const p of s.body) html += '<p>' + esc(p) + '</p>';
+        if (s.list) {
+          html += '<ul>';
+          for (const li of s.list) html += '<li>' + esc(li) + '</li>';
+          html += '</ul>';
+        }
+        if (s.after) for (const p of s.after) html += '<p>' + esc(p) + '</p>';
+        if (s.contact) {
+          const label = lang === 'zh' ? '電子郵件：' : 'Email: ';
+          html += '<p>' + label + '<a href="mailto:' + CONTACT_EMAIL + '">' + CONTACT_EMAIL + '</a></p>';
+        }
+      }
+      document.getElementById('doc').innerHTML = html;
+      document.getElementById('back').textContent = d.back;
+      document.getElementById('foot').textContent = d.foot;
+
+      document.getElementById('btn-zh').classList.toggle('active', lang === 'zh');
+      document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+      try { localStorage.setItem('lang', lang); } catch (e) {}
+    }
+
+    (function init() {
+      let lang = null;
+      try { lang = localStorage.getItem('lang'); } catch (e) {}
+      if (lang !== 'zh' && lang !== 'en') {
+        lang = (navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      }
+      document.getElementById('btn-zh').addEventListener('click', () => render('zh'));
+      document.getElementById('btn-en').addEventListener('click', () => render('en'));
+      render(lang);
+    })();
+  </script>
+</body>
+</html>

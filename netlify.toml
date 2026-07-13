@@ -24,6 +24,13 @@
   status = 200
   force = true
 
+# Clean URL for the standalone Privacy Notice (public/privacy.html -> dist root).
+# Needed for the App Store "Privacy Policy URL" field: https://selltarget.cc/privacy
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy.html"
+  status = 200
+
 # TWSE MIS real-time quotes. The Referer header is what makes MIS return
 # live intraday ticks instead of z = "-" (see vite.config.js for the story).
 [[redirects]]
