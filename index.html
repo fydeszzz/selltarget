@@ -7,6 +7,11 @@
          --safe-top consumes the inset to push content below it. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0A0A0B" />
+    <!-- This shell is bundled into the Electron/native app builds only.
+         The public web site is served from web.html (see netlify.toml,
+         which force-redirects "/" to /web.html). Keep this out of search
+         results so it never competes with web.html for the same queries. -->
+    <meta name="robots" content="noindex, nofollow" />
     <title>Sell Target — Stock Target Calculator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

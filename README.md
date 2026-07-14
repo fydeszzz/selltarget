@@ -17,6 +17,7 @@
 - 即時股價查詢：**台股**（TWSE MIS）與 **美股**（Yahoo Finance）
 - 台股淨獲利計算：總成本 - 券商手續費（可選填折數倍率）- 證券交易稅，並自動辨識 ETF
 - 手續費折數反推：輸入實付手續費，反推實際拿到的折數
+- 常見問題與 3 步驟使用教學，幫助新使用者快速上手
 - 雙語介面（English / 繁體中文），自動偵測並記住偏好
 
 ## 適用對象
@@ -43,9 +44,10 @@
 ## 分頁
 | 分頁 | 元件 | 說明 |
 |---|---|---|
-| <img src="public/stock.png" width="32" style="vertical-align:center">賣點試算 / Sell-Target | `App`（calc view） | 即時股價查詢、賣出目標計算、台股費用分項 |
+| <img src="public/stock.png" width="32" style="vertical-align:center">賣點試算 / Sell-Target | `App`（calc view） | 即時股價查詢、賣出目標計算、台股費用分項、3 步驟使用教學 |
 | <img src="public/calculator.png" width="32" style="vertical-align:center">手續費折數 / Fee Discount | `FeeDiscountPage` | 反推券商手續費折數，並可一鍵套用到賣點試算 |
 | <img src="public/settings.png" width="32" style="vertical-align:center">設定 / Settings | `SettingsPage` | 語言切換、關於、問題回報、App 版本 |
+| 常見問題 / FAQ（網頁版） | `WebApp`（faq view） | 報價來源、隱私、適用市場等常見問題，含 FAQPage 結構化資料 |
 
 ## 資料來源
 | 來源 | 用途 |
@@ -65,6 +67,10 @@
 - **處置股日曆** — 即時更新即將／正在處置的股票
 
 ## 變更紀錄
+
+### 2026-07-14
+- 新增「常見問題」分頁，分頁改為獨立網址，並在首頁加入使用教學
+- 網站SEO優化：依分頁自動調整meta description與canonical標籤
 
 ### 2026-07-09
 - 進行 iOS 版本測試
@@ -141,4 +147,4 @@ Ricy Hsu
 ---
 
 ## 📅 Last Updated
-July 9, 2026
+July 14, 2026

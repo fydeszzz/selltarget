@@ -21,6 +21,19 @@ const LS_THEME  = 'selltarget:theme';
 
 const DEFAULT_SYMBOL = { TW: '2330', US: 'TSLA' };
 
+// Each tab gets a real URL (netlify.toml redirects /fees, /faq, /settings to
+// web.html) so search engines can crawl and index them individually — e.g.
+// the FAQ's FAQPage schema is only meaningful if /faq is a page Google can
+// actually fetch, not just a client-side tab state. In the native iPad shell
+// (index.html, no server) these paths never resolve server-side, but the
+// History API still works fine locally, so the same code path is safe there.
+const PATH_FOR_VIEW = { calc: '/', fees: '/fees', faq: '/faq', settings: '/settings' };
+const VIEW_FOR_PATH = { '/': 'calc', '/fees': 'fees', '/faq': 'faq', '/settings': 'settings' };
+function viewFromLocation() {
+  if (typeof window === 'undefined') return 'calc';
+  return VIEW_FOR_PATH[window.location.pathname] || 'calc';
+}
+
 function detectTheme() {
   try {
     const saved = localStorage.getItem(LS_THEME);
@@ -57,8 +70,25 @@ export default function WebApp({ nativePad = false }) {
   const [lang, setLang] = useState(detectLang);
   const [market, setMarket] = useState(() => detectMarket(detectLang()));
   const [theme, setTheme] = useState(detectTheme);
-  const [view, setView] = useState('calc');   // 'calc' | 'fees' | 'settings'
+  const [view, setView] = useState(viewFromLocation);   // 'calc' | 'fees' | 'faq' | 'settings'
   const t = translations[lang];
+
+  // Push a real URL for the tab so it's shareable/bookmarkable and, more
+  // importantly, indexable — swap tabs with this instead of setView directly.
+  const navigate = useCallback((next) => {
+    setView(next);
+    const path = PATH_FOR_VIEW[next] || '/';
+    if (window.location.pathname !== path) window.history.pushState(null, '', path);
+  }, []);
+
+  // Back/forward buttons: resync view state to whatever path the browser
+  // landed on (does nothing extra in the native shell, which has no history
+  // stack to move through).
+  useEffect(() => {
+    const onPop = () => setView(viewFromLocation());
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
   useEffect(() => { try { localStorage.setItem(LS_LANG,   lang);   } catch {} }, [lang]);
   useEffect(() => { try { localStorage.setItem(LS_MARKET, market); } catch {} }, [market]);
@@ -67,11 +97,59 @@ export default function WebApp({ nativePad = false }) {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
   useEffect(() => { document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : 'en'; }, [lang]);
+
+  // Per-view <title> and <meta name="description"> — updates as the user
+  // switches tabs (calc/fees/settings) or language. This is client-side only
+  // (the site is a single crawlable URL), so it improves the browser tab /
+  // share-preview experience; the static tags in web.html still cover the
+  // canonical calc view for search engines and social scrapers that don't
+  // execute JS.
   useEffect(() => {
-    document.title = lang === 'zh'
-      ? 'SellTarget - 台股美股賣點計算機'
-      : 'SellTarget - TW/US stock calculator';
-  }, [lang]);
+    const meta = t.viewMeta[view] || t.viewMeta.calc;
+    document.title = meta.title;
+    let descTag = document.querySelector('meta[name="description"]');
+    if (!descTag) {
+      descTag = document.createElement('meta');
+      descTag.setAttribute('name', 'description');
+      document.head.appendChild(descTag);
+    }
+    descTag.setAttribute('content', meta.description);
+
+    let canonicalTag = document.querySelector('link[rel="canonical"]');
+    if (!canonicalTag) {
+      canonicalTag = document.createElement('link');
+      canonicalTag.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonicalTag);
+    }
+    canonicalTag.setAttribute('href', `https://selltarget.cc${PATH_FOR_VIEW[view] || '/'}`);
+  }, [lang, view, t]);
+
+  // FAQPage structured data for the FAQ tab, kept in sync with the active
+  // language. Removed when the FAQ isn't on screen (calc / fees / settings
+  // views) so the schema never describes content that isn't there.
+  useEffect(() => {
+    const id = 'faq-schema';
+    let script = document.getElementById(id);
+    if (view !== 'faq') {
+      if (script) script.remove();
+      return;
+    }
+    if (!script) {
+      script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.id = id;
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: t.faq.map((item) => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: { '@type': 'Answer', text: item.a },
+      })),
+    });
+  }, [lang, view, t]);
 
   // --- form state ---
   const [symbol, setSymbol] = useState(market === 'TW' ? '2330' : 'TSLA');
@@ -240,7 +318,7 @@ export default function WebApp({ nativePad = false }) {
   return (
     <div className="web-shell">
       <TopNav
-        view={view} setView={setView}
+        view={view} setView={navigate}
         lang={lang} setLang={setLang}
         theme={theme} setTheme={setTheme}
         t={t}
@@ -470,6 +548,27 @@ export default function WebApp({ nativePad = false }) {
               </footer>
             </section>
           </div>
+
+          <section className="intro-section">
+            <h2 className="intro-title">{t.introTitle}</h2>
+            <p className="intro-text">{t.introBody1}</p>
+            <p className="intro-text">{t.introBody2}</p>
+          </section>
+
+          <section className="guide-section">
+            <h2 className="intro-title">{t.guideTitle}</h2>
+            <ol className="guide-list">
+              {t.guideSteps.map((s, i) => (
+                <li className="guide-item" key={i}>
+                  <span className="guide-num" aria-hidden>{i + 1}</span>
+                  <span className="guide-body">
+                    <span className="guide-step-t">{s.t}</span>
+                    <span className="guide-step-d">{s.d}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </section>
         </>
       )}
 
@@ -478,8 +577,27 @@ export default function WebApp({ nativePad = false }) {
           t={t} lang={lang}
           amount={feeAmount} setAmount={setFeeAmount}
           feePaid={feePaidAmt} setFeePaid={setFeePaidAmt}
-          onApply={(mult) => { setFeeDiscountMult(String(mult)); setMarket('TW'); setView('calc'); }}
+          onApply={(mult) => { setFeeDiscountMult(String(mult)); setMarket('TW'); navigate('calc'); }}
         />
+      )}
+
+      {view === 'faq' && (
+        <>
+          <div className="page-head-web">
+            <span className="page-eyebrow">{t.nav.faq}</span>
+            <h1 className="page-h1">{t.faqTitle}</h1>
+            <p className="page-sub">{t.faqSub}</p>
+          </div>
+
+          <section className="faq-section faq-page">
+            {t.faq.map((item, i) => (
+              <details className="faq-item" key={i}>
+                <summary>{item.q}</summary>
+                <p>{item.a}</p>
+              </details>
+            ))}
+          </section>
+        </>
       )}
 
       {view === 'settings' && (

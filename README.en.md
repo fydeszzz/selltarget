@@ -14,6 +14,7 @@
 - Live price fetch for **TW stocks** (TWSE MIS) and **US stocks** (Yahoo Finance)
 - TW net-profit calculation: total cost - broker commission (optional 折數 multiplier) - securities transaction tax, with automatic ETF detection
 - Commission-discount reverse calculator: enter what you paid, see the 折數 you actually got
+- FAQ and a 3-step usage guide to help new users get started quickly
 - Bilingual UI (English / 繁體中文) with auto-detection and persistence
 
 ## Who It's For
@@ -40,9 +41,10 @@ On launch, the **賣點試算 (Sell-Target)** tab opens by default:
 ## Tabs
 | Tab | Component | Description |
 |---|---|---|
-| <img src="public/stock.png" width="32" style="vertical-align:center">賣點試算 / Sell-Target | `App` (calc view) | Live price fetch, sell-target math, TW fee breakdown |
+| <img src="public/stock.png" width="32" style="vertical-align:center">賣點試算 / Sell-Target | `App` (calc view) | Live price fetch, sell-target math, TW fee breakdown, 3-step usage guide |
 | <img src="public/calculator.png" width="32" style="vertical-align:center">手續費折數 / Fee Discount | `FeeDiscountPage` | Reverse-calculate broker commission discount, and apply it to Sell-Target in one tap |
 | <img src="public/settings.png" width="32" style="vertical-align:center">設定 / Settings | `SettingsPage` | Language toggle, About, Bug Report, App Version |
+| 常見問題 / FAQ (web only) | `WebApp` (faq view) | Data source, privacy, and supported-market questions, with FAQPage structured data |
 
 ## Data Sources
 | Source | Purpose |
@@ -62,6 +64,14 @@ On launch, the **賣點試算 (Sell-Target)** tab opens by default:
 - **Disposition-stock calendar (處置股日曆)** — live updates of stocks about to be, or currently under, disposition.
 
 ## Changelog
+
+### 2026-07-14
+- Added a dedicated FAQ tab with its own URL, and a usage guide on the homepage
+- Site-wide SEO improvements: per-tab meta description and canonical tag updates
+
+### 2026-07-09
+- iOS build testing
+- Minor UI adjustments
 
 ### 2026-07-07
 - Renamed the project to SellTarget (brand, app name, Android package ID, and desktop icon all updated)
@@ -134,4 +144,4 @@ If this app helps you, feel free to buy a can for my cat, Honey!
 ---
 
 ## 📅 Last Updated
-July 7, 2026
+July 14, 2026

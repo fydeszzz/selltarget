@@ -36,7 +36,7 @@ export default function About({ lang, setLang, theme, setTheme, t, hideSupport =
 
             <div className="about-block">
               <span className="label">{t.settingsAbout}</span>
-              <img className="about-logo" src={asset('logo.png')} alt="Sell Target" />
+              <img className="about-logo" src={asset('logo.png')} alt="SellTarget - 股票賣點計算機" />
               <p className="about-text">{t.settingsAboutText}</p>
             </div>
 

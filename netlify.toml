@@ -31,6 +31,24 @@
   to = "/privacy.html"
   status = 200
 
+# Give each in-app tab a real, crawlable URL (WebApp.jsx syncs these via the
+# History API as the user switches tabs). None of these are physical files in
+# dist/, so they'd otherwise 404 on direct load or refresh.
+[[redirects]]
+  from = "/fees"
+  to = "/web.html"
+  status = 200
+
+[[redirects]]
+  from = "/faq"
+  to = "/web.html"
+  status = 200
+
+[[redirects]]
+  from = "/settings"
+  to = "/web.html"
+  status = 200
+
 # TWSE MIS real-time quotes. The Referer header is what makes MIS return
 # live intraday ticks instead of z = "-" (see vite.config.js for the story).
 [[redirects]]
