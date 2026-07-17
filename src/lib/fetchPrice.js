@@ -227,7 +227,33 @@ async function proxiedJson(url, { tryDirect = false } = {}) {
     // reject the request (surfaced as a 502 from Netlify's redirect). With
     // no Referer sent from the browser, Netlify's own header goes through
     // uncontested.
-    if (p) attempts.push({ via: 'fetch', target: p, referrerPolicy: 'no-referrer' });
+    //
+    // TWO attempts through the edge redirect, then the Function fallback:
+    // TWSE's WAF intermittently blocks Netlify's edge-proxy egress IPs
+    // (the 502 body is TWSE's "FOR SECURITY REASONS" page). The block is
+    // sticky per edge node, and a browser pins its connection to one node,
+    // so edge retries alone can ALL fail even while other paths work. The
+    // /api/misfn Netlify Function proxies the same MIS endpoint from AWS
+    // Lambda — a different egress IP pool — which is what actually rescues
+    // a blocked session. Public CORS proxies (further down the chain) are
+    // all dead or browser-blocked as of mid-2026, so they no longer help.
+    // `retry=` suffix varies the URL so no edge cache replays a failure.
+    if (p) {
+      attempts.push({ via: 'fetch', target: p, referrerPolicy: 'no-referrer' });
+      attempts.push({
+        via: 'fetch',
+        target: `${p}${p.includes('?') ? '&' : '?'}retry=1`,
+        referrerPolicy: 'no-referrer',
+        pauseBefore: 250,
+      });
+      // Function fallback exists only for the MIS quote endpoint.
+      const misQuery = url.startsWith('https://mis.twse.com.tw/stock/api/getStockInfo.jsp')
+        ? url.split('?')[1]
+        : null;
+      if (misQuery) {
+        attempts.push({ via: 'fetch', target: `/api/misfn?${misQuery}`, referrerPolicy: 'no-referrer' });
+      }
+    }
   }
   if (CAPACITOR_NATIVE) {
     attempts.push({ via: 'fetch', target: url, headers: extraHeadersFor(url) });
